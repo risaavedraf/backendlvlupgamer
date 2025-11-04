@@ -1,6 +1,7 @@
 package com.example.backend.domain.usuario
 
 import com.example.backend.dto.LoginRequest
+import com.example.backend.dto.LoginResponse
 import com.example.backend.dto.RegistroRequest
 import com.example.backend.dto.UsuarioResponse
 import jakarta.validation.Valid
@@ -29,7 +30,7 @@ class UsuarioController(
     @PostMapping("/login")
     fun loginUsuario(
         @Valid @RequestBody request: LoginRequest
-    ): ResponseEntity<UsuarioResponse> {
+    ): ResponseEntity<LoginResponse> { // <-- ESTA ES LA LÍNEA CORRECTA
         
         // ResponseEntity.ok() devuelve un código 200
         return ResponseEntity.ok(usuarioService.login(request))

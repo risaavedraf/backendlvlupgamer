@@ -3,16 +3,15 @@ package com.example.backend.domain.usuario
 import jakarta.persistence.*
 import jakarta.validation.constraints.Email
 import jakarta.validation.constraints.NotBlank
+import java.time.LocalDate // Importante
 
-// @Entity le dice a JPA que esta clase es una tabla en la base de datos.
-// El plugin 'jpa' de Kotlin se encarga de crear el constructor sin argumentos.
 @Entity
-@Table(name = "usuarios") // Nombra la tabla en plural
+@Table(name = "usuarios")
 data class Usuario(
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    val id: Long? = null, // El ID es autogenerado por la BD
+    val id: Long? = null,
 
     @Column(nullable = false, unique = true)
     @NotBlank(message = "El nombre de usuario no puede estar vacío")
@@ -25,8 +24,22 @@ data class Usuario(
 
     @Column(nullable = false)
     @NotBlank(message = "La contraseña no puede estar vacía")
-    var passwordHash: String, // NUNCA guardamos la contraseña en texto plano
+    var passwordHash: String,
 
-    // Podríamos añadir roles (ADMIN, USER) aquí más adelante
-    var roles: String = "USER" 
+    // --- CAMPOS CORREGIDOS (BASADOS EN TU User.kt) ---
+    @Column(nullable = false)
+    @NotBlank
+    var name: String, // Reemplaza fullName
+
+    @Column(nullable = false)
+    @NotBlank
+    var lastName: String, // Reemplaza fullName
+
+    @Column(nullable = true) // Hacemos la fecha de nacimiento opcional
+    var birthDate: LocalDate? = null,
+    // --- FIN CAMPOS CORREGIDOS ---
+
+    var roles: String = "USER"
+
+    // El campo 'address' que había añadido antes estaba incorrecto, lo quitamos.
 )

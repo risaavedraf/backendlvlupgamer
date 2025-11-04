@@ -1,19 +1,27 @@
 package com.example.backend.domain.usuario
 
 import com.example.backend.dto.LoginRequest
+import com.example.backend.dto.LoginResponse // Nuevo import
 import com.example.backend.dto.RegistroRequest
 import com.example.backend.dto.UsuarioResponse
+import com.example.backend.security.JwtTokenProvider // Nuevo import
+import org.springframework.security.authentication.AuthenticationManager // Nuevo import
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken // Nuevo import
+import org.springframework.security.core.context.SecurityContextHolder // Nuevo import
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Service
+import java.time.LocalDate
+import java.time.format.DateTimeParseException
 
 @Service
 class UsuarioService(
     private val usuarioRepository: UsuarioRepository,
-    private val passwordEncoder: PasswordEncoder // Inyectamos el encoder
+    private val passwordEncoder: PasswordEncoder,
+    private val jwtTokenProvider: JwtTokenProvider, // Inyectar
+    private val authenticationManager: AuthenticationManager // Inyectar
 ) {
 
     fun registrar(req: RegistroRequest): UsuarioResponse {
-        // 1. Validar si el usuario o email ya existen
         if (usuarioRepository.existsByUsername(req.username)) {
             throw IllegalArgumentException("El nombre de usuario '${req.username}' ya está en uso.")
         }
@@ -21,44 +29,57 @@ class UsuarioService(
             throw IllegalArgumentException("El email '${req.email}' ya está registrado.")
         }
 
-        // 2. Crear el nuevo usuario
+        val fechaNacimiento: LocalDate? = try {
+            LocalDate.parse(req.birthDate)
+        } catch (e: DateTimeParseException) {
+            throw IllegalArgumentException("Formato de fecha inválido. Usar YYYY-MM-DD.")
+        }
+
         val usuario = Usuario(
             username = req.username,
             email = req.email,
-            // 3. Hashear la contraseña ANTES de guardarla
             passwordHash = passwordEncoder.encode(req.password),
+            name = req.name,
+            lastName = req.lastName,
+            birthDate = fechaNacimiento,
             roles = "USER"
         )
-
-        // 4. Guardar en la base de datos
         val usuarioGuardado = usuarioRepository.save(usuario)
-
-        // 5. Devolver el DTO de respuesta (sin la contraseña)
         return usuarioGuardado.toResponse()
     }
 
-    fun login(req: LoginRequest): UsuarioResponse {
-        // 1. Encontrar al usuario por email
-        val usuario = usuarioRepository.findByEmail(req.email)
-            .orElseThrow { IllegalArgumentException("Email o contraseña incorrectos.") }
+    fun login(req: LoginRequest): LoginResponse {
+        // 1. Spring Security autentica
+        val authentication = authenticationManager.authenticate(
+            UsernamePasswordAuthenticationToken(
+                req.email,
+                req.password
+            )
+        )
 
-        // 2. Verificar la contraseña
-        // Compara la contraseña de la petición (raw) con la hasheada (BD)
-        if (!passwordEncoder.matches(req.password, usuario.passwordHash)) {
-            throw IllegalArgumentException("Email o contraseña incorrectos.")
-        }
+        SecurityContextHolder.getContext().authentication = authentication
 
-        // 3. Login exitoso, devolver datos del usuario
-        return usuario.toResponse()
+        val userDetails = authentication.principal as org.springframework.security.core.userdetails.User
+
+        val token = jwtTokenProvider.generateToken(userDetails)
+
+        val usuario = usuarioRepository.findByEmail(req.email).get()
+
+        return LoginResponse(token = token, usuario = usuario.toResponse())
     }
 }
 
 // Función de extensión simple para convertir Entidad -> DTO
+
 fun Usuario.toResponse(): UsuarioResponse {
     return UsuarioResponse(
         id = this.id!!,
         username = this.username,
         email = this.email,
-        roles = this.roles
+        roles = this.roles,
+
+        name = this.name,
+        lastName = this.lastName,
+        birthDate = this.birthDate
     )
 }

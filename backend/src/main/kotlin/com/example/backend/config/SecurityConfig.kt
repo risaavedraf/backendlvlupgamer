@@ -1,37 +1,61 @@
 package com.example.backend.config
 
+import com.example.backend.security.JwtAuthenticationFilter
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import org.springframework.security.authentication.AuthenticationManager
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
+import org.springframework.security.config.http.SessionCreationPolicy
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.security.web.SecurityFilterChain
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter
 
 @Configuration
 @EnableWebSecurity
-class SecurityConfig {
+class SecurityConfig(
+    // Inyectamos nuestro filtro
+    private val jwtAuthFilter: JwtAuthenticationFilter
+) {
 
-    // 1. Define el Bean de PasswordEncoder para hashear contraseñas
     @Bean
     fun passwordEncoder(): PasswordEncoder {
         return BCryptPasswordEncoder()
     }
 
-    // 2. Configura las reglas de seguridad HTTP
+    // Exponemos el AuthenticationManager que el UsuarioService necesita
+    @Bean
+    fun authenticationManager(authenticationConfiguration: AuthenticationConfiguration): AuthenticationManager {
+        return authenticationConfiguration.authenticationManager
+    }
+
     @Bean
     fun securityFilterChain(http: HttpSecurity): SecurityFilterChain {
         http
-            .csrf { it.disable() } // Deshabilita CSRF para APIs REST
+            .csrf { it.disable() }
             .authorizeHttpRequests { auth ->
                 auth
-                    // Permite acceso público a registro y login
-                    .requestMatchers("/api/auth/**", "/h2-console/**").permitAll() 
-                    // Cualquier otra petición (ej. ver productos) requerirá autenticación
-                    .anyRequest().authenticated() 
+                    // Rutas públicas
+                    .requestMatchers(
+                        "/api/auth/**",
+                        "/h2-console/**"
+                    ).permitAll()
+
+                    // Rutas protegidas (ej. el perfil)
+                    .requestMatchers("/api/perfil/**").authenticated()
+
+                    // (Dejaremos los productos públicos después)
+                    .anyRequest().permitAll() // Por ahora, permite todo lo demás
             }
-            // Permite que funcione el /h2-console
-            .headers { headers -> headers.frameOptions { it.sameOrigin() } } 
+            // 1. Le decimos que no use Sesiones (porque usamos JWT)
+            .sessionManagement {
+                it.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+            }
+            .headers { headers -> headers.frameOptions { it.sameOrigin() } }
+            // 2. Añadimos nuestro filtro JWT ANTES del filtro de login estándar
+            .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter::class.java)
 
         return http.build()
     }
