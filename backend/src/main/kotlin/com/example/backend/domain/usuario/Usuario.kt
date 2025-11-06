@@ -4,6 +4,7 @@ import jakarta.persistence.*
 import jakarta.validation.constraints.Email
 import jakarta.validation.constraints.NotBlank
 import java.time.LocalDate // Importante
+import com.fasterxml.jackson.annotation.JsonManagedReference
 
 @Entity
 @Table(name = "usuarios")
@@ -39,7 +40,11 @@ data class Usuario(
     var birthDate: LocalDate? = null,
     // --- FIN CAMPOS CORREGIDOS ---
 
-    var roles: String = "USER"
+    var roles: String = "USER",
 
     // El campo 'address' que había añadido antes estaba incorrecto, lo quitamos.
+
+    @OneToMany(mappedBy = "usuario", cascade = [CascadeType.ALL], orphanRemoval = true, fetch = FetchType.LAZY)
+    @JsonManagedReference
+    var images: MutableList<UsuarioImagen> = mutableListOf()
 )

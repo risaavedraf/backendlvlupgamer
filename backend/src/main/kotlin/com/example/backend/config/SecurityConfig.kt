@@ -43,11 +43,12 @@ class SecurityConfig(
                         "/h2-console/**"
                     ).permitAll()
 
-                    // Rutas protegidas (ej. el perfil)
+                    // Rutas protegidas
                     .requestMatchers("/api/perfil/**").authenticated()
+                    .requestMatchers("/api/usuarios/**").authenticated()
 
-                    // (Dejaremos los productos públicos después)
-                    .anyRequest().permitAll() // Por ahora, permite todo lo demás
+                    // El resto puede permanecer público según necesites
+                    .anyRequest().permitAll()
             }
             // 1. Le decimos que no use Sesiones (porque usamos JWT)
             .sessionManagement {

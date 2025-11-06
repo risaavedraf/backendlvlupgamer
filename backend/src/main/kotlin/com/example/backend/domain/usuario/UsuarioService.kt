@@ -18,7 +18,8 @@ class UsuarioService(
     private val usuarioRepository: UsuarioRepository,
     private val passwordEncoder: PasswordEncoder,
     private val jwtTokenProvider: JwtTokenProvider, // Inyectar
-    private val authenticationManager: AuthenticationManager // Inyectar
+    private val authenticationManager: AuthenticationManager, // Inyectar
+    private val imagenRepo: UsuarioImagenRepository
 ) {
 
     fun registrar(req: RegistroRequest): UsuarioResponse {
@@ -45,7 +46,18 @@ class UsuarioService(
             roles = "USER"
         )
         val usuarioGuardado = usuarioRepository.save(usuario)
-        return usuarioGuardado.toResponse()
+        val profile = imagenRepo.findByUsuarioIdAndProfileTrue(usuarioGuardado.id!!)
+        val profileBase64 = profile?.let { "data:${it.contentType};base64:${java.util.Base64.getEncoder().encodeToString(it.data)}" }
+        return UsuarioResponse(
+            id = usuarioGuardado.id!!,
+            username = usuarioGuardado.username,
+            email = usuarioGuardado.email,
+            roles = usuarioGuardado.roles,
+            name = usuarioGuardado.name,
+            lastName = usuarioGuardado.lastName,
+            birthDate = usuarioGuardado.birthDate,
+            profileImageBase64 = profileBase64
+        )
     }
 
     fun login(req: LoginRequest): LoginResponse {
@@ -64,8 +76,21 @@ class UsuarioService(
         val token = jwtTokenProvider.generateToken(userDetails)
 
         val usuario = usuarioRepository.findByEmail(req.email).get()
+        val profile = imagenRepo.findByUsuarioIdAndProfileTrue(usuario.id!!)
+        val profileBase64 = profile?.let { "data:${it.contentType};base64:${java.util.Base64.getEncoder().encodeToString(it.data)}" }
 
-        return LoginResponse(token = token, usuario = usuario.toResponse())
+        val usuarioResp = UsuarioResponse(
+            id = usuario.id!!,
+            username = usuario.username,
+            email = usuario.email,
+            roles = usuario.roles,
+            name = usuario.name,
+            lastName = usuario.lastName,
+            birthDate = usuario.birthDate,
+            profileImageBase64 = profileBase64
+        )
+
+        return LoginResponse(token = token, usuario = usuarioResp)
     }
 }
 
@@ -80,6 +105,7 @@ fun Usuario.toResponse(): UsuarioResponse {
 
         name = this.name,
         lastName = this.lastName,
-        birthDate = this.birthDate
+        birthDate = this.birthDate,
+        profileImageBase64 = null
     )
 }

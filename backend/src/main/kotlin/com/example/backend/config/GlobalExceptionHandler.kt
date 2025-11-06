@@ -6,6 +6,8 @@ import org.springframework.web.bind.MethodArgumentNotValidException
 import org.springframework.web.bind.annotation.ControllerAdvice
 import org.springframework.web.bind.annotation.ExceptionHandler
 import java.lang.IllegalArgumentException
+import org.springframework.web.server.ResponseStatusException
+import org.springframework.security.access.AccessDeniedException
 
 // Esta clase "escuchará" las excepciones que ocurran en los controllers
 @ControllerAdvice
@@ -36,5 +38,17 @@ class GlobalExceptionHandler {
         return ResponseEntity
             .status(status)
             .body(mapOf("error" to ex.message))
+    }
+
+    @ExceptionHandler(ResponseStatusException::class)
+    fun handleResponseStatusException(ex: ResponseStatusException): ResponseEntity<Map<String, Any?>> {
+        return ResponseEntity
+            .status(ex.statusCode)
+            .body(mapOf("error" to ex.reason))
+    }
+
+    @ExceptionHandler(AccessDeniedException::class)
+    fun handleAccessDenied(ex: AccessDeniedException): ResponseEntity<Map<String, String?>> {
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(mapOf("error" to "Acceso denegado"))
     }
 }
