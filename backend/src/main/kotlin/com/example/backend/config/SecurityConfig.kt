@@ -3,6 +3,7 @@ package com.example.backend.config
 import com.example.backend.security.JwtAuthenticationFilter
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import org.springframework.http.HttpMethod
 import org.springframework.security.authentication.AuthenticationManager
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity
@@ -16,7 +17,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 
 @Configuration
 @EnableWebSecurity
-@EnableMethodSecurity(prePostEnabled = true) // Habilitar seguridad a nivel de método
+@EnableMethodSecurity(prePostEnabled = true)
 class SecurityConfig(
     private val jwtAuthFilter: JwtAuthenticationFilter
 ) {
@@ -41,9 +42,12 @@ class SecurityConfig(
                         "/api/auth/**",
                         "/h2-console/**"
                     ).permitAll()
-
+                    .requestMatchers(HttpMethod.GET, "/api/productos/**", "/api/categorias/**").permitAll()
+                    
                     .requestMatchers("/api/perfil/**").authenticated()
                     .requestMatchers("/api/usuarios/**").authenticated()
+                    .requestMatchers("/api/direcciones/**").authenticated()
+                    // .requestMatchers("/api/roles/**").hasRole("ADMIN") // Comentado porque usamos @PreAuthorize
 
                     .anyRequest().authenticated()
             }

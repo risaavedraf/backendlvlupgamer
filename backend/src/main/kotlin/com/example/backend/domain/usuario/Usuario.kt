@@ -1,5 +1,6 @@
 package com.example.backend.domain.usuario
 
+import com.example.backend.domain.direccion.Direccion
 import com.example.backend.domain.rol.Rol
 import com.fasterxml.jackson.annotation.JsonManagedReference
 import jakarta.persistence.*
@@ -49,5 +50,9 @@ data class Usuario(
 
     @OneToMany(mappedBy = "usuario", cascade = [CascadeType.ALL], orphanRemoval = true, fetch = FetchType.LAZY)
     @JsonManagedReference
-    var images: MutableList<UsuarioImagen> = mutableListOf()
+    var images: MutableList<UsuarioImagen> = mutableListOf(),
+
+    @OneToMany(mappedBy = "usuario", cascade = [CascadeType.ALL], orphanRemoval = true, fetch = FetchType.LAZY)
+    @JsonManagedReference("usuario-direcciones")
+    var direcciones: MutableList<Direccion> = mutableListOf()
 )
