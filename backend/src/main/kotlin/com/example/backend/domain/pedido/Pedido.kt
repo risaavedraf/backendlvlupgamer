@@ -18,8 +18,9 @@ data class Pedido(
     @Column(nullable = false)
     val total: Double, // Total final del pedido
 
-    @Column(nullable = false)
-    var estado: String = "PENDIENTE", // Ej: PENDIENTE, PROCESANDO, ENVIADO, ENTREGADO, CANCELADO
+    @ManyToOne(fetch = FetchType.EAGER) // EAGER para que el estado siempre esté disponible
+    @JoinColumn(name = "estado_id", nullable = false)
+    var estado: EstadoPedido,
 
     // Snapshot de la dirección de envío
     @Column(nullable = false)

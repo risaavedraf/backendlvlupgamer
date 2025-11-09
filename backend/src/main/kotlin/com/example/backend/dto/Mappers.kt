@@ -3,8 +3,11 @@ package com.example.backend.dto
 import com.example.backend.domain.catalogo.Categoria
 import com.example.backend.domain.catalogo.Producto
 import com.example.backend.domain.direccion.Direccion
+import com.example.backend.domain.pedido.DetallePedido
+import com.example.backend.domain.pedido.Pedido
 import com.example.backend.domain.review.Review
 import com.example.backend.domain.usuario.Usuario
+import java.time.LocalDateTime
 
 // --- Mappers de Catálogo ---
 
@@ -67,5 +70,39 @@ fun Direccion.toResponse(): DireccionResponse {
         ciudad = this.ciudad,
         region = this.region,
         codigoPostal = this.codigoPostal
+    )
+}
+
+// --- Mappers de Pedido ---
+
+fun Pedido.toResponse(): PedidoResponse {
+    return PedidoResponse(
+        id = this.id!!,
+        fechaPedido = this.fechaPedido,
+        total = this.total,
+        estado = this.estado.nombre, // CAMBIO: Ahora se usa el nombre del estado
+        direccion = DireccionResponse( // Crear DireccionResponse a partir del snapshot
+            id = 0, // No hay ID real para la dirección snapshot
+            nombre = this.direccionNombre,
+            nombreDestinatario = this.direccionNombreDestinatario,
+            calle = this.direccionCalle,
+            numeroCasa = this.direccionNumeroCasa,
+            numeroDepartamento = this.direccionNumeroDepartamento,
+            comuna = this.direccionComuna,
+            ciudad = this.direccionCiudad,
+            region = this.direccionRegion,
+            codigoPostal = this.direccionCodigoPostal
+        ),
+        detalles = this.detalles.map { it.toResponse() }
+    )
+}
+
+fun DetallePedido.toResponse(): DetallePedidoResponse {
+    return DetallePedidoResponse(
+        productId = this.producto.id!!,
+        productName = this.nombreProductoSnapshot,
+        quantity = this.cantidad,
+        unitPrice = this.precioUnitarioSnapshot,
+        subtotal = this.cantidad * this.precioUnitarioSnapshot
     )
 }

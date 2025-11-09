@@ -1,5 +1,6 @@
 package com.example.backend.domain.catalogo
 
+import com.example.backend.domain.pedido.DetallePedido
 import com.example.backend.domain.review.Review
 import com.fasterxml.jackson.annotation.JsonBackReference
 import com.fasterxml.jackson.annotation.JsonManagedReference
@@ -23,7 +24,7 @@ data class Producto(
     val precio: Double,
 
     @Column(nullable = false)
-    val stock: Int,
+    var stock: Int, // <-- CAMBIADO a var para poder modificarlo
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "categoria_id", nullable = false)
@@ -36,5 +37,9 @@ data class Producto(
 
     @OneToMany(mappedBy = "producto", cascade = [CascadeType.ALL], orphanRemoval = true, fetch = FetchType.LAZY)
     @JsonManagedReference("producto-reviews")
-    var reviews: MutableList<Review> = mutableListOf()
+    var reviews: MutableList<Review> = mutableListOf(),
+
+    @OneToMany(mappedBy = "producto", cascade = [CascadeType.ALL], orphanRemoval = true, fetch = FetchType.LAZY)
+    @JsonManagedReference("producto-detalles-pedido")
+    var detallesPedido: MutableList<DetallePedido> = mutableListOf()
 )

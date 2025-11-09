@@ -4,8 +4,12 @@ import com.example.backend.domain.catalogo.Categoria
 import com.example.backend.domain.catalogo.CategoriaRepository
 import com.example.backend.domain.catalogo.Producto
 import com.example.backend.domain.catalogo.ProductoRepository
+import com.example.backend.domain.direccion.Direccion
+import com.example.backend.domain.direccion.DireccionRepository
 import com.example.backend.domain.evento.Evento
 import com.example.backend.domain.evento.EventoRepository
+import com.example.backend.domain.pedido.EstadoPedido
+import com.example.backend.domain.pedido.EstadoPedidoRepository
 import com.example.backend.domain.rol.Rol
 import com.example.backend.domain.rol.RolRepository
 import com.example.backend.domain.usuario.Usuario
@@ -26,7 +30,9 @@ class DataInitializer(
     private val passwordEncoder: PasswordEncoder,
     private val categoriaRepository: CategoriaRepository,
     private val productoRepository: ProductoRepository,
-    private val eventoRepository: EventoRepository // Inyectar
+    private val eventoRepository: EventoRepository,
+    private val estadoPedidoRepository: EstadoPedidoRepository,
+    private val direccionRepository: DireccionRepository
 ) {
 
     @Bean
@@ -35,7 +41,9 @@ class DataInitializer(
             initRoles()
             initUsuarios()
             initCatalogo()
-            initEventos() // <-- AHORA SÍ SE LLAMA A ESTA FUNCIÓN
+            initEventos()
+            initEstadosPedido()
+            initDirecciones()
         }
     }
 
@@ -124,5 +132,41 @@ class DataInitializer(
                 longitude = -70.6000
             )
         ))
+    }
+
+    private fun initEstadosPedido() {
+        if (estadoPedidoRepository.count() == 0L) {
+            estadoPedidoRepository.saveAll(listOf(
+                EstadoPedido(nombre = "PENDIENTE", descripcion = "El pedido ha sido recibido y está esperando confirmación."),
+                EstadoPedido(nombre = "PROCESANDO", descripcion = "El pedido está siendo preparado para el envío."),
+                EstadoPedido(nombre = "ENVIADO", descripcion = "El pedido ha sido enviado al cliente."),
+                EstadoPedido(nombre = "ENTREGADO", descripcion = "El pedido ha sido entregado al cliente."),
+                EstadoPedido(nombre = "CANCELADO", descripcion = "El pedido ha sido cancelado.")
+            ))
+        }
+    }
+
+    private fun initDirecciones() {
+        if (direccionRepository.count() == 0L) {
+            val testUser = usuarioRepository.findByEmail("optimizado@example.com").orElse(null)
+            testUser?.let { user ->
+                val direccionCasa = Direccion(
+                    nombre = "Casa",
+                    nombreDestinatario = user.name + " " + user.lastName,
+                    calle = "Av. Siempre Viva",
+                    numeroCasa = "742",
+                    numeroDepartamento = null,
+                    comuna = "Springfield",
+                    ciudad = "Springfield",
+                    region = "O'Higgins",
+                    codigoPostal = "1234567",
+                    usuario = user
+                )
+                direccionRepository.save(direccionCasa)
+                // Eliminadas las líneas:
+                // user.direcciones.add(direccionCasa)
+                // usuarioRepository.save(user)
+            }
+        }
     }
 }
