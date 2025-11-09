@@ -1,54 +1,101 @@
 package com.example.backend.config
 
+import com.example.backend.dto.ErrorResponse
+import com.example.backend.exception.DuplicateResourceException
+import com.example.backend.exception.ResourceNotFoundException
+import jakarta.servlet.http.HttpServletRequest
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
-import org.springframework.web.bind.MethodArgumentNotValidException
-import org.springframework.web.bind.annotation.ControllerAdvice
-import org.springframework.web.bind.annotation.ExceptionHandler
-import java.lang.IllegalArgumentException
-import org.springframework.web.server.ResponseStatusException
 import org.springframework.security.access.AccessDeniedException
+import org.springframework.web.bind.MethodArgumentNotValidException
+import org.springframework.web.bind.annotation.ExceptionHandler
+import org.springframework.web.bind.annotation.RestControllerAdvice
 
-// Esta clase "escuchará" las excepciones que ocurran en los controllers
-@ControllerAdvice
+@RestControllerAdvice
 class GlobalExceptionHandler {
 
-    // Se activa cuando @Valid falla (ej. email inválido, contraseña corta)
-    @ExceptionHandler(MethodArgumentNotValidException::class)
-    fun handleValidationExceptions(ex: MethodArgumentNotValidException): ResponseEntity<Map<String, String?>> {
-        val errors = ex.bindingResult.fieldErrors.associate {
-            it.field to it.defaultMessage
-        }
-        return ResponseEntity
-            .badRequest() // 400
-            .body(mapOf("error" to "Error de validación", "details" to errors.toString()))
+    @ExceptionHandler(ResourceNotFoundException::class)
+    fun handleResourceNotFoundException(
+        ex: ResourceNotFoundException,
+        request: HttpServletRequest
+    ): ResponseEntity<ErrorResponse> {
+        val errorResponse = ErrorResponse(
+            status = HttpStatus.NOT_FOUND.value(),
+            error = HttpStatus.NOT_FOUND.reasonPhrase,
+            message = ex.message,
+            path = request.servletPath
+        )
+        return ResponseEntity(errorResponse, HttpStatus.NOT_FOUND)
     }
 
-    // Se activa cuando lanzamos IllegalArgumentException (ej. email duplicado, login incorrecto)
+    @ExceptionHandler(DuplicateResourceException::class)
+    fun handleDuplicateResourceException(
+        ex: DuplicateResourceException,
+        request: HttpServletRequest
+    ): ResponseEntity<ErrorResponse> {
+        val errorResponse = ErrorResponse(
+            status = HttpStatus.CONFLICT.value(),
+            error = HttpStatus.CONFLICT.reasonPhrase,
+            message = ex.message,
+            path = request.servletPath
+        )
+        return ResponseEntity(errorResponse, HttpStatus.CONFLICT)
+    }
+
     @ExceptionHandler(IllegalArgumentException::class)
-    fun handleIllegalArgumentException(ex: IllegalArgumentException): ResponseEntity<Map<String, String?>> {
-        
-        // Si el error es de "duplicado", usamos un 409. Si no, un 400.
-        val status = if (ex.message?.contains("ya está en uso") == true || ex.message?.contains("ya está registrado") == true) {
-            HttpStatus.CONFLICT // 409
-        } else {
-            HttpStatus.BAD_REQUEST // 400
-        }
-
-        return ResponseEntity
-            .status(status)
-            .body(mapOf("error" to ex.message))
-    }
-
-    @ExceptionHandler(ResponseStatusException::class)
-    fun handleResponseStatusException(ex: ResponseStatusException): ResponseEntity<Map<String, Any?>> {
-        return ResponseEntity
-            .status(ex.statusCode)
-            .body(mapOf("error" to ex.reason))
+    fun handleIllegalArgumentException(
+        ex: IllegalArgumentException,
+        request: HttpServletRequest
+    ): ResponseEntity<ErrorResponse> {
+        val errorResponse = ErrorResponse(
+            status = HttpStatus.BAD_REQUEST.value(),
+            error = HttpStatus.BAD_REQUEST.reasonPhrase,
+            message = ex.message,
+            path = request.servletPath
+        )
+        return ResponseEntity(errorResponse, HttpStatus.BAD_REQUEST)
     }
 
     @ExceptionHandler(AccessDeniedException::class)
-    fun handleAccessDenied(ex: AccessDeniedException): ResponseEntity<Map<String, String?>> {
-        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(mapOf("error" to "Acceso denegado"))
+    fun handleAccessDeniedException(
+        ex: AccessDeniedException,
+        request: HttpServletRequest
+    ): ResponseEntity<ErrorResponse> {
+        val errorResponse = ErrorResponse(
+            status = HttpStatus.FORBIDDEN.value(),
+            error = HttpStatus.FORBIDDEN.reasonPhrase,
+            message = "Acceso denegado. No tienes los permisos necesarios para acceder a este recurso.",
+            path = request.servletPath
+        )
+        return ResponseEntity(errorResponse, HttpStatus.FORBIDDEN)
+    }
+
+    @ExceptionHandler(MethodArgumentNotValidException::class)
+    fun handleValidationExceptions(
+        ex: MethodArgumentNotValidException,
+        request: HttpServletRequest
+    ): ResponseEntity<Map<String, Any>> {
+        val errors = ex.bindingResult.fieldErrors.associate { it.field to it.defaultMessage }
+        val response = mapOf(
+            "status" to HttpStatus.BAD_REQUEST.value(),
+            "error" to "Validation Error",
+            "messages" to errors,
+            "path" to request.servletPath
+        )
+        return ResponseEntity(response, HttpStatus.BAD_REQUEST)
+    }
+
+    @ExceptionHandler(Exception::class)
+    fun handleGenericException(
+        ex: Exception,
+        request: HttpServletRequest
+    ): ResponseEntity<ErrorResponse> {
+        val errorResponse = ErrorResponse(
+            status = HttpStatus.INTERNAL_SERVER_ERROR.value(),
+            error = HttpStatus.INTERNAL_SERVER_ERROR.reasonPhrase,
+            message = "Ocurrió un error inesperado: ${ex.message}",
+            path = request.servletPath
+        )
+        return ResponseEntity(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR)
     }
 }

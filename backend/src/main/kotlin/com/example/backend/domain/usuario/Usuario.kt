@@ -1,10 +1,11 @@
 package com.example.backend.domain.usuario
 
+import com.example.backend.domain.rol.Rol
+import com.fasterxml.jackson.annotation.JsonManagedReference
 import jakarta.persistence.*
 import jakarta.validation.constraints.Email
 import jakarta.validation.constraints.NotBlank
-import java.time.LocalDate // Importante
-import com.fasterxml.jackson.annotation.JsonManagedReference
+import java.time.LocalDate
 
 @Entity
 @Table(name = "usuarios")
@@ -27,22 +28,24 @@ data class Usuario(
     @NotBlank(message = "La contraseña no puede estar vacía")
     var passwordHash: String,
 
-    // --- CAMPOS CORREGIDOS (BASADOS EN TU User.kt) ---
     @Column(nullable = false)
     @NotBlank
-    var name: String, // Reemplaza fullName
+    var name: String,
 
     @Column(nullable = false)
     @NotBlank
-    var lastName: String, // Reemplaza fullName
+    var lastName: String,
 
-    @Column(nullable = true) // Hacemos la fecha de nacimiento opcional
+    @Column(nullable = true)
     var birthDate: LocalDate? = null,
-    // --- FIN CAMPOS CORREGIDOS ---
 
-    var roles: String = "USER",
-
-    // El campo 'address' que había añadido antes estaba incorrecto, lo quitamos.
+    @ManyToMany(fetch = FetchType.EAGER, targetEntity = Rol::class)
+    @JoinTable(
+        name = "usuario_roles",
+        joinColumns = [JoinColumn(name = "usuario_id")],
+        inverseJoinColumns = [JoinColumn(name = "rol_id")]
+    )
+    var roles: Set<Rol> = mutableSetOf(),
 
     @OneToMany(mappedBy = "usuario", cascade = [CascadeType.ALL], orphanRemoval = true, fetch = FetchType.LAZY)
     @JsonManagedReference

@@ -1,6 +1,7 @@
 package com.example.backend.domain.usuario
 
 import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.server.ResponseStatusException
 import org.springframework.http.HttpStatus
 import org.springframework.web.multipart.MultipartFile
@@ -13,23 +14,23 @@ class UsuarioImagenService(
     private val imagenRepo: UsuarioImagenRepository
 ) {
 
-    // Método privado para centralizar la autorización
     private fun authorizeUser(usuarioId: Long, email: String) {
         val usuario = usuarioRepository.findByEmail(email).orElseThrow {
             ResponseStatusException(HttpStatus.UNAUTHORIZED, "Usuario no encontrado")
         }
+
         if (usuario.id != usuarioId) {
             throw ResponseStatusException(HttpStatus.FORBIDDEN, "No tienes permiso para acceder a este recurso")
         }
     }
 
+    @Transactional
     fun saveImage(usuarioId: Long, file: MultipartFile, profile: Boolean = false, userEmail: String): UsuarioImagen {
-        authorizeUser(usuarioId, userEmail) // <-- Llama a la autorización
+        authorizeUser(usuarioId, userEmail)
         val usuario = usuarioRepository.findById(usuarioId).orElseThrow { ResponseStatusException(HttpStatus.NOT_FOUND, "Usuario no encontrado") }
 
         val bytes = try { file.bytes } catch (ex: Exception) { throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Error al leer el archivo") }
 
-        // Validaciones
         val maxBytes = 5_242_880L // 5 MB
         if (bytes.size.toLong() > maxBytes) throw ResponseStatusException(HttpStatus.PAYLOAD_TOO_LARGE, "Archivo demasiado grande (max 5MB)")
 
@@ -38,7 +39,7 @@ class UsuarioImagenService(
         if (!allowed.contains(ct.lowercase())) throw ResponseStatusException(HttpStatus.UNSUPPORTED_MEDIA_TYPE, "Tipo de archivo no permitido")
 
         if (profile) {
-            imagenRepo.findByUsuarioId(usuarioId).forEach { if (it.profile) { it.profile = false; imagenRepo.save(it) } }
+            imagenRepo.resetProfileImages(usuarioId)
         }
 
         val img = UsuarioImagen(
@@ -55,7 +56,7 @@ class UsuarioImagenService(
     }
 
     fun getImageBase64(usuarioId: Long, imageId: Long, userEmail: String): String {
-        authorizeUser(usuarioId, userEmail) // <-- Llama a la autorización
+        authorizeUser(usuarioId, userEmail)
         val img = imagenRepo.findById(imageId).orElseThrow { ResponseStatusException(HttpStatus.NOT_FOUND, "Imagen no encontrada") }
         if (img.usuario?.id != usuarioId) throw ResponseStatusException(HttpStatus.FORBIDDEN, "Imagen no pertenece al usuario")
         val encoded = Base64.getEncoder().encodeToString(img.data)
@@ -63,7 +64,7 @@ class UsuarioImagenService(
     }
 
     fun listImages(usuarioId: Long, userEmail: String): List<UsuarioImagen> {
-        authorizeUser(usuarioId, userEmail) // <-- Llama a la autorización
+        authorizeUser(usuarioId, userEmail)
         return imagenRepo.findByUsuarioId(usuarioId)
     }
 }

@@ -13,8 +13,6 @@ import javax.crypto.SecretKey
 @Component
 class JwtTokenProvider {
 
-    // 1. La "llave secreta" para firmar los tokens
-    //    Esta llave DEBE estar en tus variables de entorno, no aquí.
     @Value("\${app.jwt.secret}")
     private lateinit var jwtSecret: String
 
@@ -25,38 +23,44 @@ class JwtTokenProvider {
         Keys.hmacShaKeyFor(jwtSecret.toByteArray())
     }
 
-    // 2. Genera un token para un usuario
     fun generateToken(userDetails: UserDetails): String {
         val now = Date()
         val expiryDate = Date(now.time + jwtExpirationInMs.toLong())
+        val roles = userDetails.authorities.map { it.authority }
 
         return Jwts.builder()
-            .setSubject(userDetails.username) // Usamos el email como "subject"
+            .setSubject(userDetails.username)
+            .claim("roles", roles)
             .setIssuedAt(now)
             .setExpiration(expiryDate)
             .signWith(key, SignatureAlgorithm.HS512)
             .compact()
     }
 
-    // 3. Extrae el email del token
     fun getEmailFromJWT(token: String): String {
-        val claims: Claims = Jwts.parserBuilder()
+        return parseClaims(token).subject
+    }
+
+    @Suppress("UNCHECKED_CAST")
+    fun getRolesFromJWT(token: String): List<String> {
+        val claims = parseClaims(token)
+        return claims["roles"] as List<String>
+    }
+
+    fun validateToken(token: String): Boolean {
+        try {
+            parseClaims(token)
+            return true
+        } catch (ex: Exception) {
+            return false
+        }
+    }
+
+    private fun parseClaims(token: String): Claims {
+        return Jwts.parserBuilder()
             .setSigningKey(key)
             .build()
             .parseClaimsJws(token)
             .body
-
-        return claims.subject
-    }
-
-    // 4. Valida el token
-    fun validateToken(token: String): Boolean {
-        try {
-            Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token)
-            return true
-        } catch (ex: Exception) {
-            // Puedes loggear el error específico (expirado, malformado, etc.)
-            return false
-        }
     }
 }
