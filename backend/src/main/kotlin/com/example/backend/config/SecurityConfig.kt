@@ -43,6 +43,7 @@ class SecurityConfig(
                         "/h2-console/**"
                     ).permitAll()
                     .requestMatchers(HttpMethod.GET, "/api/productos/**", "/api/categorias/**").permitAll()
+                    .requestMatchers(HttpMethod.GET, "/api/eventos/**", "/api/eventos/{eventoId}/imagenes/**").permitAll() // <-- AÑADIDO
                     
                     .requestMatchers("/api/perfil/**").authenticated()
                     .requestMatchers("/api/usuarios/**").authenticated()

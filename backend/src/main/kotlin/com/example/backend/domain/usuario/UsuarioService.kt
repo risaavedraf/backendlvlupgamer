@@ -1,10 +1,7 @@
 package com.example.backend.domain.usuario
 
 import com.example.backend.domain.rol.RolRepository
-import com.example.backend.dto.LoginRequest
-import com.example.backend.dto.LoginResponse
-import com.example.backend.dto.RegistroRequest
-import com.example.backend.dto.UsuarioResponse
+import com.example.backend.dto.*
 import com.example.backend.exception.DuplicateResourceException
 import com.example.backend.exception.ResourceNotFoundException
 import com.example.backend.security.CustomUserDetails
@@ -79,16 +76,4 @@ class UsuarioService(
         return LoginResponse(token = token, usuario = usuario.toResponse(profileBase64))
     }
 }
-
-fun Usuario.toResponse(profileImageBase64: String? = null): UsuarioResponse {
-    return UsuarioResponse(
-        id = this.id!!,
-        username = this.username,
-        email = this.email,
-        roles = this.roles.map { it.nombre }.toSet(),
-        name = this.name,
-        lastName = this.lastName,
-        birthDate = this.birthDate,
-        profileImageBase64 = profileImageBase64
-    )
-}
+// Se elimina la función toResponse de aquí

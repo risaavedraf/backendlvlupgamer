@@ -4,6 +4,8 @@ import com.example.backend.domain.catalogo.Categoria
 import com.example.backend.domain.catalogo.CategoriaRepository
 import com.example.backend.domain.catalogo.Producto
 import com.example.backend.domain.catalogo.ProductoRepository
+import com.example.backend.domain.evento.Evento
+import com.example.backend.domain.evento.EventoRepository
 import com.example.backend.domain.rol.Rol
 import com.example.backend.domain.rol.RolRepository
 import com.example.backend.domain.usuario.Usuario
@@ -14,6 +16,7 @@ import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Profile
 import org.springframework.security.crypto.password.PasswordEncoder
 import java.time.LocalDate
+import java.time.LocalDateTime
 
 @Configuration
 @Profile("dev")
@@ -22,7 +25,8 @@ class DataInitializer(
     private val usuarioRepository: UsuarioRepository,
     private val passwordEncoder: PasswordEncoder,
     private val categoriaRepository: CategoriaRepository,
-    private val productoRepository: ProductoRepository
+    private val productoRepository: ProductoRepository,
+    private val eventoRepository: EventoRepository // Inyectar
 ) {
 
     @Bean
@@ -31,6 +35,7 @@ class DataInitializer(
             initRoles()
             initUsuarios()
             initCatalogo()
+            initEventos() // <-- AHORA SÍ SE LLAMA A ESTA FUNCIÓN
         }
     }
 
@@ -87,6 +92,37 @@ class DataInitializer(
             Producto(categoria = catMouse, nombre = "Mouse Gamer Logitech", precio = 39.99, descripcion = "Mouse ergonómico con alta precisión y botones programables.", stock = 3),
             Producto(categoria = catAuriculares, nombre = "Auriculares Gamer HyperX", precio = 59.99, descripcion = "Auriculares con sonido envolvente y micrófono ajustable.", stock = 0),
             Producto(categoria = catMonitores, nombre = "Monitor Gamer ASUS", precio = 299.99, descripcion = "Monitor 27\" 144Hz con tecnología FreeSync para juegos fluidos.", stock = 6)
+        ))
+    }
+
+    private fun initEventos() {
+        if (eventoRepository.count() > 0L) return
+
+        eventoRepository.saveAll(listOf(
+            Evento(
+                name = "Torneo de Valorant - Copa Invierno",
+                description = "Gran torneo de Valorant con premios en efectivo y periféricos gamer. ¡Inscríbete ya!",
+                date = LocalDateTime.of(2025, 12, 15, 18, 0),
+                locationName = "Arena Gamer Pro",
+                latitude = -33.4489,
+                longitude = -70.6693
+            ),
+            Evento(
+                name = "Lanzamiento Cyberpunk 2077 - Phantom Liberty",
+                description = "Celebra el lanzamiento de la expansión Phantom Liberty con actividades, sorteos y meet & greet con streamers.",
+                date = LocalDateTime.of(2025, 10, 26, 15, 0),
+                locationName = "Tienda LvlUp Gamer Central",
+                latitude = -33.4500,
+                longitude = -70.6700
+            ),
+            Evento(
+                name = "Feria Gamer Chile 2025",
+                description = "La feria de videojuegos más grande de Chile. Pruebas de juegos, concursos de cosplay, y mucho más.",
+                date = LocalDateTime.of(2025, 11, 20, 10, 0),
+                locationName = "Espacio Riesco",
+                latitude = -33.3600,
+                longitude = -70.6000
+            )
         ))
     }
 }

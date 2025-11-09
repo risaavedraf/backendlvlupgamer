@@ -1,6 +1,8 @@
 package com.example.backend.domain.catalogo
 
+import com.example.backend.domain.review.Review
 import com.fasterxml.jackson.annotation.JsonBackReference
+import com.fasterxml.jackson.annotation.JsonManagedReference
 import jakarta.persistence.*
 
 @Entity
@@ -26,5 +28,13 @@ data class Producto(
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "categoria_id", nullable = false)
     @JsonBackReference
-    var categoria: Categoria
+    var categoria: Categoria,
+
+    @OneToMany(mappedBy = "producto", cascade = [CascadeType.ALL], orphanRemoval = true, fetch = FetchType.LAZY)
+    @JsonManagedReference("producto-imagenes")
+    var imagenes: MutableList<ProductoImagen> = mutableListOf(),
+
+    @OneToMany(mappedBy = "producto", cascade = [CascadeType.ALL], orphanRemoval = true, fetch = FetchType.LAZY)
+    @JsonManagedReference("producto-reviews")
+    var reviews: MutableList<Review> = mutableListOf()
 )

@@ -1,5 +1,6 @@
 package com.example.backend.domain.usuario
 
+import com.example.backend.dto.FullProfileResponse // <-- Importar
 import com.example.backend.dto.UpdateProfileRequest
 import com.example.backend.dto.UsuarioResponse
 import jakarta.validation.Valid
@@ -15,8 +16,7 @@ class ProfileController(
 
     // GET /api/perfil/me
     @GetMapping("/me")
-    fun getMyProfile(principal: Principal): ResponseEntity<UsuarioResponse> {
-        // 'principal' es inyectado por Spring Security y contiene el email del usuario logueado
+    fun getMyProfile(principal: Principal): ResponseEntity<FullProfileResponse> { // <-- CAMBIO AQUÍ
         val usuario = profileService.getProfile(principal.name)
         return ResponseEntity.ok(usuario)
     }

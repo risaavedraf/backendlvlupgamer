@@ -6,5 +6,6 @@ data class ProductoResponse(
     val descripcion: String,
     val precio: Double,
     val stock: Int,
-    val categoria: CategoriaResponse
+    val categoria: CategoriaResponse,
+    val imagenUrl: String? // Campo para la URL de la imagen principal
 )

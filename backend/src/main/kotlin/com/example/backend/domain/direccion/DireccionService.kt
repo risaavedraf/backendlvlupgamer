@@ -3,6 +3,7 @@ package com.example.backend.domain.direccion
 import com.example.backend.domain.usuario.UsuarioRepository
 import com.example.backend.dto.DireccionRequest
 import com.example.backend.dto.DireccionResponse
+import com.example.backend.dto.toResponse // Importar
 import com.example.backend.exception.ResourceNotFoundException
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -22,13 +23,12 @@ class DireccionService(
         val usuario = usuarioRepository.findByEmail(userEmail)
             .orElseThrow { ResourceNotFoundException("Usuario no encontrado con email $userEmail") }
 
-        // Usamos el operador !! porque @Valid en el controller nos garantiza que no son nulos
         val direccion = Direccion(
             nombre = request.nombre!!,
             nombreDestinatario = request.nombreDestinatario!!,
             calle = request.calle!!,
             numeroCasa = request.numeroCasa!!,
-            numeroDepartamento = request.numeroDepartamento, // Este es nulable
+            numeroDepartamento = request.numeroDepartamento,
             comuna = request.comuna!!,
             ciudad = request.ciudad!!,
             region = request.region!!,
@@ -49,13 +49,12 @@ class DireccionService(
             throw ResourceNotFoundException("Dirección no encontrada con id $id")
         }
 
-        // Usamos el operador !! porque @Valid en el controller nos garantiza que no son nulos
         direccion.apply {
             nombre = request.nombre!!
             nombreDestinatario = request.nombreDestinatario!!
             calle = request.calle!!
             numeroCasa = request.numeroCasa!!
-            numeroDepartamento = request.numeroDepartamento // Este es nulable
+            numeroDepartamento = request.numeroDepartamento
             comuna = request.comuna!!
             ciudad = request.ciudad!!
             region = request.region!!
@@ -79,17 +78,4 @@ class DireccionService(
     }
 }
 
-fun Direccion.toResponse(): DireccionResponse {
-    return DireccionResponse(
-        id = this.id!!,
-        nombre = this.nombre,
-        nombreDestinatario = this.nombreDestinatario,
-        calle = this.calle,
-        numeroCasa = this.numeroCasa,
-        numeroDepartamento = this.numeroDepartamento,
-        comuna = this.comuna,
-        ciudad = this.ciudad,
-        region = this.region,
-        codigoPostal = this.codigoPostal
-    )
-}
+// Se elimina la función toResponse de aquí
