@@ -1,57 +1,40 @@
 package com.example.backend.domain.usuario
 
 import org.springframework.http.ResponseEntity
-import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.web.bind.annotation.*
-import org.springframework.web.server.ResponseStatusException
-import org.springframework.http.HttpStatus
 import org.springframework.web.multipart.MultipartFile
-
-import com.example.backend.domain.usuario.UsuarioRepository
-
+import java.security.Principal
 
 @RestController
 @RequestMapping("/api/usuarios/{id}/images")
 class UsuarioImagenController(
-    private val imagenService: UsuarioImagenService,
-    private val usuarioRepository: UsuarioRepository
+    private val imagenService: UsuarioImagenService
+    // No necesitas UsuarioRepository aquí
 ) {
 
     @PostMapping
     fun upload(
         @PathVariable id: Long,
         @RequestParam("file") file: MultipartFile,
-        @RequestParam("profile", required = false, defaultValue = "false") profile: Boolean
+        @RequestParam("profile", required = false, defaultValue = "false") profile: Boolean,
+        principal: Principal // Inyecta Principal
     ): ResponseEntity<UsuarioImagen> {
-        authorizeUserAccess(id)
-        val saved = imagenService.saveImage(id, file, profile)
+        // Delega la autorización y la lógica al servicio
+        val saved = imagenService.saveImage(id, file, profile, principal.name)
         return ResponseEntity.ok(saved)
     }
 
     @GetMapping
-    fun list(@PathVariable id: Long): List<UsuarioImagen> {
-        authorizeUserAccess(id)
-        return imagenService.listImages(id)
+    fun list(@PathVariable id: Long, principal: Principal): ResponseEntity<List<UsuarioImagen>> {
+        // Delega la autorización y la lógica al servicio
+        val images = imagenService.listImages(id, principal.name)
+        return ResponseEntity.ok(images)
     }
 
     @GetMapping("/{imageId}/base64")
-    fun getBase64(@PathVariable id: Long, @PathVariable imageId: Long): ResponseEntity<String> {
-        authorizeUserAccess(id)
-        val dataUrl = imagenService.getImageBase64(id, imageId)
+    fun getBase64(@PathVariable id: Long, @PathVariable imageId: Long, principal: Principal): ResponseEntity<String> {
+        // Delega la autorización y la lógica al servicio
+        val dataUrl = imagenService.getImageBase64(id, imageId, principal.name)
         return ResponseEntity.ok(dataUrl)
     }
-
-    private fun authorizeUserAccess(usuarioId: Long) {
-        val auth = SecurityContextHolder.getContext().authentication
-        val principal = auth?.principal
-        val email = when (principal) {
-            is org.springframework.security.core.userdetails.User -> principal.username
-            is String -> principal
-            else -> null
-    } ?: throw ResponseStatusException(HttpStatus.UNAUTHORIZED, "No autorizado")
-
-    val usuario = usuarioRepository.findByEmail(email).orElseThrow { ResponseStatusException(HttpStatus.UNAUTHORIZED, "Usuario no encontrado") }
-    if (usuario.id != usuarioId) throw ResponseStatusException(HttpStatus.FORBIDDEN, "No tienes permiso para acceder a este recurso")
-    }
-
 }
