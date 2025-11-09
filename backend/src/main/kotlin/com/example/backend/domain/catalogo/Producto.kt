@@ -16,7 +16,7 @@ data class Producto(
     @Column(nullable = false)
     val nombre: String,
 
-    @Lob
+    // Eliminada la anotación @Lob
     @Column(nullable = false)
     val descripcion: String,
 

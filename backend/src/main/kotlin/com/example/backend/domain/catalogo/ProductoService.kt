@@ -21,6 +21,11 @@ class ProductoService(
         return toResponseWithImage(producto)
     }
 
+    fun searchProductos(query: String): List<ProductoResponse> {
+        return productoRepository.findByNombreContainingIgnoreCaseOrDescripcionContainingIgnoreCase(query, query)
+            .map { toResponseWithImage(it) }
+    }
+
     private fun toResponseWithImage(producto: Producto): ProductoResponse {
         val imagenPrincipal = imagenRepository.findByProductoIdAndIsPrincipalTrue(producto.id!!)
         val imagenUrl = imagenPrincipal.map { "/api/productos/${producto.id}/imagenes/${it.id!!}/base64" }.orElse(null)
