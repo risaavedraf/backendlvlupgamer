@@ -11,6 +11,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDate
 import java.time.format.DateTimeParseException
 
@@ -75,5 +76,29 @@ class UsuarioService(
 
         return LoginResponse(token = token, usuario = usuario.toResponse(profileBase64))
     }
+
+    fun findAllUsuariosWithRoles(): List<UsuarioResponse> {
+        return usuarioRepository.findAll().map { usuario ->
+            val profile = imagenRepo.findByUsuarioIdAndProfileTrue(usuario.id!!)
+            val profileBase64 = profile?.let { "data:${it.contentType};base64:${java.util.Base64.getEncoder().encodeToString(it.data)}" }
+            usuario.toResponse(profileBase64)
+        }
+    }
+
+    @Transactional
+    fun asignarRolAUsuario(userId: Long, rolId: Long): UsuarioResponse {
+        val usuario = usuarioRepository.findById(userId)
+            .orElseThrow { ResourceNotFoundException("Usuario no encontrado con ID $userId") }
+
+        val rol = rolRepository.findById(rolId)
+            .orElseThrow { ResourceNotFoundException("Rol no encontrado con ID $rolId") }
+
+        usuario.roles.add(rol) // Añadir el rol al conjunto de roles del usuario
+        val usuarioActualizado = usuarioRepository.save(usuario)
+
+        val profile = imagenRepo.findByUsuarioIdAndProfileTrue(usuarioActualizado.id!!)
+        val profileBase64 = profile?.let { "data:${it.contentType};base64:${java.util.Base64.getEncoder().encodeToString(it.data)}" }
+
+        return usuarioActualizado.toResponse(profileBase64)
+    }
 }
-// Se elimina la función toResponse de aquí

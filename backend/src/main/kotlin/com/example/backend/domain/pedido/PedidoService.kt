@@ -97,6 +97,16 @@ class PedidoService(
         return pedidoRepository.findByUsuarioEmailOrderByFechaPedidoDesc(userEmail).map { it.toResponse() }
     }
 
+    fun findAllPedidos(): List<PedidoResponse> {
+        return pedidoRepository.findAll().map { it.toResponse() }
+    }
+
+    fun findPedidoById(id: Long): PedidoResponse {
+        val pedido = pedidoRepository.findById(id)
+            .orElseThrow { ResourceNotFoundException("Pedido no encontrado con ID $id") }
+        return pedido.toResponse()
+    }
+
     @Transactional
     fun actualizarEstadoPedido(pedidoId: Long, nuevoEstadoNombre: String): PedidoResponse {
         val pedido = pedidoRepository.findById(pedidoId)

@@ -12,23 +12,23 @@ data class Evento(
     val id: Long? = null,
 
     @Column(nullable = false)
-    val name: String,
+    var name: String, // Cambiado de val a var
 
     @Lob
     @Column(nullable = false)
-    val description: String,
+    var description: String, // Cambiado de val a var
 
     @Column(nullable = false)
-    val date: LocalDateTime,
+    var date: LocalDateTime, // Cambiado de val a var
 
     @Column(nullable = false)
-    val locationName: String,
+    var locationName: String, // Cambiado de val a var
 
     @Column(nullable = false)
-    val latitude: Double,
+    var latitude: Double, // Cambiado de val a var
 
     @Column(nullable = false)
-    val longitude: Double,
+    var longitude: Double, // Cambiado de val a var
 
     @OneToMany(mappedBy = "evento", cascade = [CascadeType.ALL], orphanRemoval = true, fetch = FetchType.LAZY)
     @JsonManagedReference("evento-imagenes")

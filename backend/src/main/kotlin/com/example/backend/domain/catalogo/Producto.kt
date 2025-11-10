@@ -14,17 +14,16 @@ data class Producto(
     val id: Long? = null,
 
     @Column(nullable = false)
-    val nombre: String,
-
-    // Eliminada la anotación @Lob
-    @Column(nullable = false)
-    val descripcion: String,
+    var nombre: String, // Cambiado de val a var
 
     @Column(nullable = false)
-    val precio: Double,
+    var descripcion: String, // Cambiado de val a var
 
     @Column(nullable = false)
-    var stock: Int, // <-- CAMBIADO a var para poder modificarlo
+    var precio: Double, // Cambiado de val a var
+
+    @Column(nullable = false)
+    var stock: Int,
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "categoria_id", nullable = false)

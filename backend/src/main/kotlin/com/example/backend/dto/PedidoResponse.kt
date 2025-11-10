@@ -8,5 +8,6 @@ data class PedidoResponse(
     val total: Double,
     val estado: String,
     val direccion: DireccionResponse, // Usamos el DTO de dirección existente
-    val detalles: List<DetallePedidoResponse>
+    val detalles: List<DetallePedidoResponse>,
+    val usuario: UsuarioPedidoResponse // Cambiado a UsuarioPedidoResponse
 )

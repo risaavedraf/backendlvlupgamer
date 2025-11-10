@@ -58,6 +58,13 @@ fun Usuario.toResponse(profileImageBase64: String? = null): UsuarioResponse {
     )
 }
 
+fun Usuario.toPedidoResponse(): UsuarioPedidoResponse {
+    return UsuarioPedidoResponse(
+        id = this.id!!,
+        username = this.username
+    )
+}
+
 fun Direccion.toResponse(): DireccionResponse {
     return DireccionResponse(
         id = this.id!!,
@@ -80,7 +87,7 @@ fun Pedido.toResponse(): PedidoResponse {
         id = this.id!!,
         fechaPedido = this.fechaPedido,
         total = this.total,
-        estado = this.estado.nombre, // CAMBIO: Ahora se usa el nombre del estado
+        estado = this.estado.nombre,
         direccion = DireccionResponse( // Crear DireccionResponse a partir del snapshot
             id = 0, // No hay ID real para la dirección snapshot
             nombre = this.direccionNombre,
@@ -93,7 +100,8 @@ fun Pedido.toResponse(): PedidoResponse {
             region = this.direccionRegion,
             codigoPostal = this.direccionCodigoPostal
         ),
-        detalles = this.detalles.map { it.toResponse() }
+        detalles = this.detalles.map { it.toResponse() },
+        usuario = this.usuario.toPedidoResponse() // Cambiado a toPedidoResponse()
     )
 }
 

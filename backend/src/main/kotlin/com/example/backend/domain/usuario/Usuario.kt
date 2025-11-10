@@ -48,7 +48,7 @@ data class Usuario(
         joinColumns = [JoinColumn(name = "usuario_id")],
         inverseJoinColumns = [JoinColumn(name = "rol_id")]
     )
-    var roles: Set<Rol> = mutableSetOf(),
+    var roles: MutableSet<Rol> = mutableSetOf(), // Cambiado de Set<Rol> a MutableSet<Rol>
 
     @OneToMany(mappedBy = "usuario", cascade = [CascadeType.ALL], orphanRemoval = true, fetch = FetchType.LAZY)
     @JsonManagedReference

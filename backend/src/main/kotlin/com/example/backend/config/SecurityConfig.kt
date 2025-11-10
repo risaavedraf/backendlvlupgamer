@@ -43,7 +43,9 @@ class SecurityConfig(
                         "/h2-console/**"
                     ).permitAll()
                     .requestMatchers(HttpMethod.GET, "/api/productos/**", "/api/categorias/**").permitAll()
-                    .requestMatchers(HttpMethod.GET, "/api/eventos/**", "/api/eventos/{eventoId}/imagenes/**").permitAll() // <-- AÑADIDO
+                    .requestMatchers(HttpMethod.GET, "/api/eventos/**", "/api/eventos/{eventoId}/imagenes/**").permitAll()
+                    
+                    .requestMatchers("/api/admin/**").hasRole("ADMIN") // <-- AÑADIDO: Proteger endpoints de admin
                     
                     .requestMatchers("/api/perfil/**").authenticated()
                     .requestMatchers("/api/usuarios/**").authenticated()

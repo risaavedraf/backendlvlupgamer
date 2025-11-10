@@ -29,6 +29,8 @@ class PedidoController(private val pedidoService: PedidoService) {
         return ResponseEntity.ok(pedidos)
     }
 
+    // ELIMINADO: Este endpoint se ha movido a AdminPedidoController.kt
+    /*
     @PutMapping("/{id}/estado")
     @PreAuthorize("hasRole('ADMIN')") // Solo administradores pueden cambiar el estado
     fun actualizarEstadoPedido(
@@ -38,4 +40,5 @@ class PedidoController(private val pedidoService: PedidoService) {
         val pedidoActualizado = pedidoService.actualizarEstadoPedido(id, request.nuevoEstadoNombre)
         return ResponseEntity.ok(pedidoActualizado)
     }
+    */
 }
