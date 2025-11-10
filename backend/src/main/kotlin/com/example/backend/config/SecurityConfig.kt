@@ -3,8 +3,10 @@ package com.example.backend.config
 import com.example.backend.security.JwtAuthenticationFilter
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import org.springframework.http.HttpMethod
 import org.springframework.security.authentication.AuthenticationManager
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
 import org.springframework.security.config.http.SessionCreationPolicy
@@ -15,8 +17,8 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 
 @Configuration
 @EnableWebSecurity
+@EnableMethodSecurity(prePostEnabled = true)
 class SecurityConfig(
-    // Inyectamos nuestro filtro
     private val jwtAuthFilter: JwtAuthenticationFilter
 ) {
 
@@ -25,7 +27,6 @@ class SecurityConfig(
         return BCryptPasswordEncoder()
     }
 
-    // Exponemos el AuthenticationManager que el UsuarioService necesita
     @Bean
     fun authenticationManager(authenticationConfiguration: AuthenticationConfiguration): AuthenticationManager {
         return authenticationConfiguration.authenticationManager
@@ -37,24 +38,26 @@ class SecurityConfig(
             .csrf { it.disable() }
             .authorizeHttpRequests { auth ->
                 auth
-                    // Rutas públicas
                     .requestMatchers(
                         "/api/auth/**",
                         "/h2-console/**"
                     ).permitAll()
-
-                    // Rutas protegidas (ej. el perfil)
+                    .requestMatchers(HttpMethod.GET, "/api/productos/**", "/api/categorias/**").permitAll()
+                    .requestMatchers(HttpMethod.GET, "/api/eventos/**", "/api/eventos/{eventoId}/imagenes/**").permitAll()
+                    
+                    .requestMatchers("/api/admin/**").hasRole("ADMIN") // <-- AÑADIDO: Proteger endpoints de admin
+                    
                     .requestMatchers("/api/perfil/**").authenticated()
+                    .requestMatchers("/api/usuarios/**").authenticated()
+                    .requestMatchers("/api/direcciones/**").authenticated()
+                    // .requestMatchers("/api/roles/**").hasRole("ADMIN") // Comentado porque usamos @PreAuthorize
 
-                    // (Dejaremos los productos públicos después)
-                    .anyRequest().permitAll() // Por ahora, permite todo lo demás
+                    .anyRequest().authenticated()
             }
-            // 1. Le decimos que no use Sesiones (porque usamos JWT)
             .sessionManagement {
                 it.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
             }
             .headers { headers -> headers.frameOptions { it.sameOrigin() } }
-            // 2. Añadimos nuestro filtro JWT ANTES del filtro de login estándar
             .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter::class.java)
 
         return http.build()

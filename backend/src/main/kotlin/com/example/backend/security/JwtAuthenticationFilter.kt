@@ -4,6 +4,7 @@ import jakarta.servlet.FilterChain
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
+import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource
 import org.springframework.stereotype.Component
@@ -12,8 +13,8 @@ import org.springframework.web.filter.OncePerRequestFilter
 
 @Component
 class JwtAuthenticationFilter(
-    private val tokenProvider: JwtTokenProvider,
-    private val customUserDetailsService: CustomUserDetailsService
+    private val tokenProvider: JwtTokenProvider
+    // Ya no necesitamos UserDetailsService aquí
 ) : OncePerRequestFilter() {
 
     override fun doFilterInternal(
@@ -25,24 +26,29 @@ class JwtAuthenticationFilter(
             val jwt = getJwtFromRequest(request)
 
             if (!jwt.isNullOrBlank() && tokenProvider.validateToken(jwt)) {
+                // Extraer datos directamente del token
                 val email = tokenProvider.getEmailFromJWT(jwt)
-                val userDetails = customUserDetailsService.loadUserByUsername(email)
+                val roles = tokenProvider.getRolesFromJWT(jwt)
 
+                // Crear las autoridades
+                val authorities = roles.map { SimpleGrantedAuthority(it) }
+
+                // Crear el objeto de autenticación SIN consultar la BD
+                // Usamos el email como "principal" y no necesitamos credenciales (contraseña)
                 val authentication = UsernamePasswordAuthenticationToken(
-                    userDetails, null, userDetails.authorities
+                    email, null, authorities
                 )
 
                 authentication.details = WebAuthenticationDetailsSource().buildDetails(request)
                 SecurityContextHolder.getContext().authentication = authentication
             }
         } catch (ex: Exception) {
-            // Logger.error("No se pudo establecer la autenticación del usuario", ex)
+            // Puedes loggear el error si lo deseas
         }
 
         filterChain.doFilter(request, response)
     }
 
-    // Obtiene el token "Bearer <token>" de la cabecera
     private fun getJwtFromRequest(request: HttpServletRequest): String? {
         val bearerToken = request.getHeader("Authorization")
         if (StringUtils.hasText(bearerToken) && bearerToken.startsWith("Bearer ")) {
