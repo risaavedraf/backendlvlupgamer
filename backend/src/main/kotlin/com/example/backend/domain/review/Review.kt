@@ -1,5 +1,6 @@
 package com.example.backend.domain.review
 
+import com.example.backend.domain.common.BaseAuditableEntity // Importar BaseAuditableEntity
 import com.example.backend.domain.catalogo.Producto
 import com.example.backend.domain.usuario.Usuario
 import com.fasterxml.jackson.annotation.JsonBackReference
@@ -32,4 +33,4 @@ data class Review(
     @JoinColumn(name = "producto_id", nullable = false)
     @JsonBackReference("producto-reviews")
     val producto: Producto
-)
+) : BaseAuditableEntity() // Extender BaseAuditableEntity

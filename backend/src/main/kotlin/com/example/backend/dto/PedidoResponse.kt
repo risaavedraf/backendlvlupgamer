@@ -9,5 +9,7 @@ data class PedidoResponse(
     val estado: String,
     val direccion: DireccionResponse, // Usamos el DTO de dirección existente
     val detalles: List<DetallePedidoResponse>,
-    val usuario: UsuarioPedidoResponse // Cambiado a UsuarioPedidoResponse
+    val usuario: UsuarioPedidoResponse, // Cambiado a UsuarioPedidoResponse
+    val createdAt: LocalDateTime, // Añadido
+    val updatedAt: LocalDateTime // Añadido
 )

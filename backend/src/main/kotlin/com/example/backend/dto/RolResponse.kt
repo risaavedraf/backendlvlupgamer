@@ -2,7 +2,7 @@ package com.example.backend.dto
 
 import java.time.LocalDateTime
 
-data class CategoriaResponse(
+data class RolResponse(
     val id: Long,
     val nombre: String,
     val createdAt: LocalDateTime,

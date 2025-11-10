@@ -8,5 +8,7 @@ data class ReviewResponse(
     val comentario: String,
     val fecha: LocalDateTime,
     val author: String, // username del usuario
-    val authorId: Long
+    val authorId: Long,
+    val createdAt: LocalDateTime,
+    val updatedAt: LocalDateTime
 )

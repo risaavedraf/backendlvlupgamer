@@ -7,5 +7,6 @@ data class ErrorResponse(
     val status: Int,
     val error: String,
     val message: String?,
-    val path: String
+    val path: String,
+    val errors: Map<String, String>? = null // Añadido para errores de validación
 )

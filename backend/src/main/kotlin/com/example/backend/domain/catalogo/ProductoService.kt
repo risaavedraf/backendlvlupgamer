@@ -1,10 +1,13 @@
 package com.example.backend.domain.catalogo
 
 import com.example.backend.dto.CreateProductoRequest
+import com.example.backend.dto.PageResponse
 import com.example.backend.dto.ProductoResponse
 import com.example.backend.dto.UpdateProductoRequest
+import com.example.backend.dto.toPageResponse // Importar la función de extensión
 import com.example.backend.dto.toResponse
 import com.example.backend.exception.ResourceNotFoundException
+import org.springframework.data.domain.Pageable // Importar Pageable
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
@@ -12,11 +15,13 @@ import org.springframework.transaction.annotation.Transactional
 class ProductoService(
     private val productoRepository: ProductoRepository,
     private val imagenRepository: ProductoImagenRepository,
-    private val categoriaRepository: CategoriaRepository // Inyectar CategoriaRepository
+    private val categoriaRepository: CategoriaRepository
 ) {
 
-    fun findAll(): List<ProductoResponse> {
-        return productoRepository.findAll().map { toResponseWithImage(it) }
+    // Modificado para soportar paginación
+    fun findAll(pageable: Pageable): PageResponse<ProductoResponse> {
+        val page = productoRepository.findAll(pageable)
+        return page.toPageResponse { toResponseWithImage(it) }
     }
 
     fun findById(id: Long): ProductoResponse {
@@ -25,9 +30,11 @@ class ProductoService(
         return toResponseWithImage(producto)
     }
 
-    fun searchProductos(query: String): List<ProductoResponse> {
-        return productoRepository.findByNombreContainingIgnoreCaseOrDescripcionContainingIgnoreCase(query, query)
-            .map { toResponseWithImage(it) }
+    // Modificado para soportar paginación y filtrado por query
+    fun searchProductos(query: String, pageable: Pageable): PageResponse<ProductoResponse> {
+        val spec = ProductoSpecification.withSearchQuery(query)
+        val page = productoRepository.findAll(spec, pageable)
+        return page.toPageResponse { toResponseWithImage(it) }
     }
 
     @Transactional
@@ -75,7 +82,6 @@ class ProductoService(
         val imagenPrincipal = imagenRepository.findByProductoIdAndIsPrincipalTrue(producto.id!!)
         val imagenUrl = imagenPrincipal.map { "/api/productos/${producto.id}/imagenes/${it.id!!}/base64" }.orElse(null)
         
-        // Llamamos a la función centralizada y le pasamos la URL
         return producto.toResponse(imagenUrl)
     }
 }

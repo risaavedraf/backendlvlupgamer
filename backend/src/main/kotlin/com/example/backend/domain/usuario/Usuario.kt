@@ -1,5 +1,6 @@
 package com.example.backend.domain.usuario
 
+import com.example.backend.domain.common.BaseAuditableEntity // Importar BaseAuditableEntity
 import com.example.backend.domain.direccion.Direccion
 import com.example.backend.domain.pedido.Pedido
 import com.example.backend.domain.review.Review
@@ -48,7 +49,7 @@ data class Usuario(
         joinColumns = [JoinColumn(name = "usuario_id")],
         inverseJoinColumns = [JoinColumn(name = "rol_id")]
     )
-    var roles: MutableSet<Rol> = mutableSetOf(), // Cambiado de Set<Rol> a MutableSet<Rol>
+    var roles: MutableSet<Rol> = mutableSetOf(),
 
     @OneToMany(mappedBy = "usuario", cascade = [CascadeType.ALL], orphanRemoval = true, fetch = FetchType.LAZY)
     @JsonManagedReference
@@ -65,4 +66,4 @@ data class Usuario(
     @OneToMany(mappedBy = "usuario", cascade = [CascadeType.ALL], orphanRemoval = true, fetch = FetchType.LAZY)
     @JsonManagedReference("usuario-pedidos")
     var pedidos: MutableList<Pedido> = mutableListOf()
-)
+) : BaseAuditableEntity() // Extender BaseAuditableEntity

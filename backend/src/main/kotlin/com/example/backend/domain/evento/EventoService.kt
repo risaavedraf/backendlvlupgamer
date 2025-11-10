@@ -2,9 +2,12 @@ package com.example.backend.domain.evento
 
 import com.example.backend.dto.CreateEventoRequest
 import com.example.backend.dto.EventoResponse
+import com.example.backend.dto.PageResponse
 import com.example.backend.dto.UpdateEventoRequest
+import com.example.backend.dto.toPageResponse
 import com.example.backend.dto.toResponse
 import com.example.backend.exception.ResourceNotFoundException
+import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
@@ -14,14 +17,23 @@ class EventoService(
     private val eventoImagenRepository: EventoImagenRepository
 ) {
 
-    fun findAll(): List<EventoResponse> {
-        return eventoRepository.findAll().map { toResponseWithImage(it) }
+    // Modificado para soportar paginación
+    fun findAll(pageable: Pageable): PageResponse<EventoResponse> {
+        val page = eventoRepository.findAll(pageable)
+        return page.toPageResponse { toResponseWithImage(it) }
     }
 
     fun findById(id: Long): EventoResponse {
         val evento = eventoRepository.findById(id)
             .orElseThrow { ResourceNotFoundException("Evento no encontrado con id $id") }
         return toResponseWithImage(evento)
+    }
+
+    // Añadido para soportar paginación y filtrado por query
+    fun searchEventos(query: String, pageable: Pageable): PageResponse<EventoResponse> {
+        val spec = EventoSpecification.withSearchQuery(query)
+        val page = eventoRepository.findAll(spec, pageable)
+        return page.toPageResponse { toResponseWithImage(it) }
     }
 
     @Transactional
@@ -58,17 +70,4 @@ class EventoService(
 
         return evento.toResponse(imageUrl)
     }
-}
-
-fun Evento.toResponse(imageUrl: String? = null): EventoResponse {
-    return EventoResponse(
-        id = this.id!!,
-        name = this.name,
-        description = this.description,
-        date = this.date,
-        locationName = this.locationName,
-        latitude = this.latitude,
-        longitude = this.longitude,
-        imageUrl = imageUrl
-    )
 }

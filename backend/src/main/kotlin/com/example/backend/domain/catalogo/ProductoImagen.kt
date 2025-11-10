@@ -1,5 +1,6 @@
 package com.example.backend.domain.catalogo
 
+import com.example.backend.domain.common.BaseAuditableEntity // Importar BaseAuditableEntity
 import com.fasterxml.jackson.annotation.JsonBackReference
 import jakarta.persistence.*
 import java.time.OffsetDateTime
@@ -34,4 +35,4 @@ data class ProductoImagen(
     @JoinColumn(name = "producto_id", nullable = false)
     @JsonBackReference("producto-imagenes")
     var producto: Producto
-)
+) : BaseAuditableEntity() // Extender BaseAuditableEntity

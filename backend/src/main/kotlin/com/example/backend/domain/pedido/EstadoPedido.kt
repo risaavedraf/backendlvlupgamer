@@ -1,5 +1,6 @@
 package com.example.backend.domain.pedido
 
+import com.example.backend.domain.common.BaseAuditableEntity // Importar BaseAuditableEntity
 import jakarta.persistence.*
 
 @Entity
@@ -14,4 +15,4 @@ data class EstadoPedido(
 
     @Column(nullable = true)
     val descripcion: String? = null
-)
+) : BaseAuditableEntity() // Extender BaseAuditableEntity

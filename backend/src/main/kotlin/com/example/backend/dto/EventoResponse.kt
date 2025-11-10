@@ -10,5 +10,7 @@ data class EventoResponse(
     val locationName: String,
     val latitude: Double,
     val longitude: Double,
-    val imageUrl: String? // URL generada dinámicamente
+    val imageUrl: String?, // URL generada dinámicamente
+    val createdAt: LocalDateTime,
+    val updatedAt: LocalDateTime
 )

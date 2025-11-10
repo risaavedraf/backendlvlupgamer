@@ -1,5 +1,6 @@
 package com.example.backend.domain.catalogo
 
+import com.example.backend.domain.common.BaseAuditableEntity // Importar BaseAuditableEntity
 import com.example.backend.domain.pedido.DetallePedido
 import com.example.backend.domain.review.Review
 import com.fasterxml.jackson.annotation.JsonBackReference
@@ -14,13 +15,13 @@ data class Producto(
     val id: Long? = null,
 
     @Column(nullable = false)
-    var nombre: String, // Cambiado de val a var
+    var nombre: String,
 
     @Column(nullable = false)
-    var descripcion: String, // Cambiado de val a var
+    var descripcion: String,
 
     @Column(nullable = false)
-    var precio: Double, // Cambiado de val a var
+    var precio: Double,
 
     @Column(nullable = false)
     var stock: Int,
@@ -41,4 +42,4 @@ data class Producto(
     @OneToMany(mappedBy = "producto", cascade = [CascadeType.ALL], orphanRemoval = true, fetch = FetchType.LAZY)
     @JsonManagedReference("producto-detalles-pedido")
     var detallesPedido: MutableList<DetallePedido> = mutableListOf()
-)
+) : BaseAuditableEntity() // Extender BaseAuditableEntity

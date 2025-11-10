@@ -1,5 +1,6 @@
 package com.example.backend.domain.pedido
 
+import com.example.backend.domain.common.BaseAuditableEntity // Importar BaseAuditableEntity
 import com.example.backend.domain.usuario.Usuario
 import com.fasterxml.jackson.annotation.JsonManagedReference
 import jakarta.persistence.*
@@ -48,4 +49,4 @@ data class Pedido(
     @OneToMany(mappedBy = "pedido", cascade = [CascadeType.ALL], orphanRemoval = true, fetch = FetchType.LAZY)
     @JsonManagedReference("pedido-detalles")
     var detalles: MutableList<DetallePedido> = mutableListOf()
-)
+) : BaseAuditableEntity() // Extender BaseAuditableEntity

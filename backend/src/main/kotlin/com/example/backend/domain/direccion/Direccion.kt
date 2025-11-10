@@ -1,5 +1,6 @@
 package com.example.backend.domain.direccion
 
+import com.example.backend.domain.common.BaseAuditableEntity // Importar BaseAuditableEntity
 import com.example.backend.domain.usuario.Usuario
 import com.fasterxml.jackson.annotation.JsonBackReference
 import jakarta.persistence.*
@@ -33,4 +34,4 @@ data class Direccion(
     @JoinColumn(name = "usuario_id", nullable = false)
     @JsonBackReference
     var usuario: Usuario
-)
+) : BaseAuditableEntity() // Extender BaseAuditableEntity

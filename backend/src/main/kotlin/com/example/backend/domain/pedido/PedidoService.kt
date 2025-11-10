@@ -5,9 +5,13 @@ import com.example.backend.domain.catalogo.ProductoRepository
 import com.example.backend.domain.direccion.DireccionRepository
 import com.example.backend.domain.usuario.UsuarioRepository
 import com.example.backend.dto.CheckoutRequest
+import com.example.backend.dto.PageResponse
 import com.example.backend.dto.PedidoResponse
+import com.example.backend.dto.toPageResponse
 import com.example.backend.dto.toResponse
 import com.example.backend.exception.ResourceNotFoundException
+import org.springframework.data.domain.Pageable
+import org.springframework.data.jpa.domain.Specification
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDateTime
@@ -19,7 +23,7 @@ class PedidoService(
     private val usuarioRepository: UsuarioRepository,
     private val productoRepository: ProductoRepository,
     private val direccionRepository: DireccionRepository,
-    private val estadoPedidoRepository: EstadoPedidoRepository // Inyectar EstadoPedidoRepository
+    private val estadoPedidoRepository: EstadoPedidoRepository
 ) {
 
     @Transactional
@@ -97,8 +101,11 @@ class PedidoService(
         return pedidoRepository.findByUsuarioEmailOrderByFechaPedidoDesc(userEmail).map { it.toResponse() }
     }
 
-    fun findAllPedidos(): List<PedidoResponse> {
-        return pedidoRepository.findAll().map { it.toResponse() }
+    // Modificado para soportar paginación y filtrado por estado
+    fun findAllPedidos(pageable: Pageable, estadoNombre: String? = null): PageResponse<PedidoResponse> {
+        val spec = PedidoSpecification.byEstado(estadoNombre)
+        val page = pedidoRepository.findAll(spec, pageable)
+        return page.toPageResponse { it.toResponse() }
     }
 
     fun findPedidoById(id: Long): PedidoResponse {

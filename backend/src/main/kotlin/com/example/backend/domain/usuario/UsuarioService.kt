@@ -6,6 +6,7 @@ import com.example.backend.exception.DuplicateResourceException
 import com.example.backend.exception.ResourceNotFoundException
 import com.example.backend.security.CustomUserDetails
 import com.example.backend.security.JwtTokenProvider
+import org.springframework.data.domain.Pageable
 import org.springframework.security.authentication.AuthenticationManager
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import org.springframework.security.core.context.SecurityContextHolder
@@ -77,8 +78,11 @@ class UsuarioService(
         return LoginResponse(token = token, usuario = usuario.toResponse(profileBase64))
     }
 
-    fun findAllUsuariosWithRoles(): List<UsuarioResponse> {
-        return usuarioRepository.findAll().map { usuario ->
+    // Modificado para soportar paginación y filtrado por query
+    fun findAllUsuariosWithRoles(pageable: Pageable, query: String? = null): PageResponse<UsuarioResponse> {
+        val spec = UsuarioSpecification.withSearchQuery(query)
+        val page = usuarioRepository.findAll(spec, pageable)
+        return page.toPageResponse { usuario ->
             val profile = imagenRepo.findByUsuarioIdAndProfileTrue(usuario.id!!)
             val profileBase64 = profile?.let { "data:${it.contentType};base64:${java.util.Base64.getEncoder().encodeToString(it.data)}" }
             usuario.toResponse(profileBase64)
