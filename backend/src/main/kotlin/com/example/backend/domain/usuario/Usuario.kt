@@ -1,6 +1,6 @@
 package com.example.backend.domain.usuario
 
-import com.example.backend.domain.common.BaseAuditableEntity // Importar BaseAuditableEntity
+import com.example.backend.domain.common.BaseAuditableEntity
 import com.example.backend.domain.direccion.Direccion
 import com.example.backend.domain.pedido.Pedido
 import com.example.backend.domain.review.Review
@@ -66,4 +66,4 @@ data class Usuario(
     @OneToMany(mappedBy = "usuario", cascade = [CascadeType.ALL], orphanRemoval = true, fetch = FetchType.LAZY)
     @JsonManagedReference("usuario-pedidos")
     var pedidos: MutableList<Pedido> = mutableListOf()
-) : BaseAuditableEntity() // Extender BaseAuditableEntity
+) : BaseAuditableEntity()

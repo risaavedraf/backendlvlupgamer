@@ -4,6 +4,10 @@ import com.example.backend.domain.catalogo.Categoria
 import com.example.backend.domain.catalogo.CategoriaRepository
 import com.example.backend.domain.catalogo.Producto
 import com.example.backend.domain.catalogo.ProductoRepository
+import com.example.backend.domain.cupon.Cupon
+import com.example.backend.domain.cupon.CuponRepository
+import com.example.backend.domain.cupon.TipoDescuento
+import com.example.backend.domain.cupon.TipoDescuentoRepository
 import com.example.backend.domain.direccion.Direccion
 import com.example.backend.domain.direccion.DireccionRepository
 import com.example.backend.domain.evento.Evento
@@ -32,7 +36,9 @@ class DataInitializer(
     private val productoRepository: ProductoRepository,
     private val eventoRepository: EventoRepository,
     private val estadoPedidoRepository: EstadoPedidoRepository,
-    private val direccionRepository: DireccionRepository
+    private val direccionRepository: DireccionRepository,
+    private val tipoDescuentoRepository: TipoDescuentoRepository,
+    private val cuponRepository: CuponRepository
 ) {
 
     @Bean
@@ -44,6 +50,7 @@ class DataInitializer(
             initEventos()
             initEstadosPedido()
             initDirecciones()
+            initCupones()
         }
     }
 
@@ -163,10 +170,44 @@ class DataInitializer(
                     usuario = user
                 )
                 direccionRepository.save(direccionCasa)
-                // Eliminadas las líneas:
-                // user.direcciones.add(direccionCasa)
-                // usuarioRepository.save(user)
             }
         }
+    }
+
+    private fun initCupones() {
+        if (cuponRepository.count() > 0L) return
+
+        val tipoPorcentaje = tipoDescuentoRepository.save(TipoDescuento(nombre = "PORCENTAJE"))
+        val tipoMontoFijo = tipoDescuentoRepository.save(TipoDescuento(nombre = "MONTO_FIJO"))
+
+        cuponRepository.saveAll(listOf(
+            Cupon(
+                codigo = "BIENVENIDO10",
+                tipo = tipoPorcentaje,
+                valor = 0.10, // 10%
+                activo = true,
+                montoMinimoCompra = 20000.0
+            ),
+            Cupon(
+                codigo = "DESCUENTO5000",
+                tipo = tipoMontoFijo,
+                valor = 5000.0, // $5.000
+                activo = true,
+                montoMinimoCompra = 50000.0
+            ),
+            Cupon(
+                codigo = "EXPIRADO",
+                tipo = tipoPorcentaje,
+                valor = 0.50, // 50%
+                activo = true,
+                fechaExpiracion = LocalDate.now().minusDays(1) // Expiró ayer
+            ),
+            Cupon(
+                codigo = "INACTIVO",
+                tipo = tipoMontoFijo,
+                valor = 10000.0,
+                activo = false // Deshabilitado
+            )
+        ))
     }
 }
