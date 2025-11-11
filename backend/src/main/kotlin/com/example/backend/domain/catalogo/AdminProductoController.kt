@@ -17,19 +17,16 @@ import org.springframework.web.bind.annotation.*
 @PreAuthorize("hasRole('ADMIN')") // Asegura que todos los métodos en este controlador requieren el rol ADMIN
 class AdminProductoController(private val productoService: ProductoService) {
 
-    @GetMapping // Modificado para listar todos los productos con paginación y filtrado
+    @GetMapping
     fun getAllProductos(
         @RequestParam(required = false) query: String?,
+        @RequestParam(required = false) categoriaId: Long?,
         @PageableDefault(size = 10, sort = ["nombre"]) pageable: Pageable
     ): ResponseEntity<PageResponse<ProductoResponse>> {
-        return if (!query.isNullOrBlank()) {
-            ResponseEntity.ok(productoService.searchProductos(query, pageable))
-        } else {
-            ResponseEntity.ok(productoService.findAll(pageable))
-        }
+        return ResponseEntity.ok(productoService.search(pageable, query, categoriaId))
     }
 
-    @GetMapping("/{id}") // Endpoint para obtener un producto por ID
+    @GetMapping("/{id}")
     fun getProductoById(@PathVariable id: Long): ResponseEntity<ProductoResponse> {
         return ResponseEntity.ok(productoService.findById(id))
     }

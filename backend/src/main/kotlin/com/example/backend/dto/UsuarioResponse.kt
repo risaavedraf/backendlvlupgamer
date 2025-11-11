@@ -7,8 +7,7 @@ data class UsuarioResponse(
     val id: Long,
     val username: String,
     val email: String,
-    val roles: Set<String>, // <-- CORREGIDO: de String a Set<String>
-
+    val roles: Set<String>,
     val name: String,
     val lastName: String,
     val birthDate: LocalDate?,

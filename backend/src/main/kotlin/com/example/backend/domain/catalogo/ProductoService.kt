@@ -4,10 +4,10 @@ import com.example.backend.dto.CreateProductoRequest
 import com.example.backend.dto.PageResponse
 import com.example.backend.dto.ProductoResponse
 import com.example.backend.dto.UpdateProductoRequest
-import com.example.backend.dto.toPageResponse // Importar la función de extensión
+import com.example.backend.dto.toPageResponse
 import com.example.backend.dto.toResponse
 import com.example.backend.exception.ResourceNotFoundException
-import org.springframework.data.domain.Pageable // Importar Pageable
+import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
@@ -18,9 +18,10 @@ class ProductoService(
     private val categoriaRepository: CategoriaRepository
 ) {
 
-    // Modificado para soportar paginación
-    fun findAll(pageable: Pageable): PageResponse<ProductoResponse> {
-        val page = productoRepository.findAll(pageable)
+    // Método unificado para búsqueda y listado
+    fun search(pageable: Pageable, query: String?, categoriaId: Long?): PageResponse<ProductoResponse> {
+        val spec = ProductoSpecification.build(query, categoriaId)
+        val page = productoRepository.findAll(spec, pageable)
         return page.toPageResponse { toResponseWithImage(it) }
     }
 
@@ -28,13 +29,6 @@ class ProductoService(
         val producto = productoRepository.findById(id)
             .orElseThrow { ResourceNotFoundException("Producto no encontrado con id $id") }
         return toResponseWithImage(producto)
-    }
-
-    // Modificado para soportar paginación y filtrado por query
-    fun searchProductos(query: String, pageable: Pageable): PageResponse<ProductoResponse> {
-        val spec = ProductoSpecification.withSearchQuery(query)
-        val page = productoRepository.findAll(spec, pageable)
-        return page.toPageResponse { toResponseWithImage(it) }
     }
 
     @Transactional

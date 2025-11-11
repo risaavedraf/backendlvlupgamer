@@ -18,6 +18,16 @@ class DireccionService(
         return direccionRepository.findByUsuarioEmail(userEmail).map { it.toResponse() }
     }
 
+    fun findById(id: Long, userEmail: String): DireccionResponse {
+        val direccion = direccionRepository.findById(id)
+            .orElseThrow { ResourceNotFoundException("Dirección no encontrada con id $id") }
+
+        if (direccion.usuario.email != userEmail) {
+            throw ResourceNotFoundException("Dirección no encontrada con id $id")
+        }
+        return direccion.toResponse()
+    }
+
     @Transactional
     fun save(request: DireccionRequest, userEmail: String): DireccionResponse {
         val usuario = usuarioRepository.findByEmail(userEmail)
@@ -77,5 +87,3 @@ class DireccionService(
         direccionRepository.delete(direccion)
     }
 }
-
-// Se elimina la función toResponse de aquí

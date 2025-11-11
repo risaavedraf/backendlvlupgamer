@@ -18,6 +18,15 @@ class DireccionController(private val direccionService: DireccionService) {
         return ResponseEntity.ok(direcciones)
     }
 
+    @GetMapping("/{id}") // Nuevo endpoint
+    fun getDireccionById(
+        @PathVariable id: Long,
+        principal: Principal
+    ): ResponseEntity<DireccionResponse> {
+        val direccion = direccionService.findById(id, principal.name)
+        return ResponseEntity.ok(direccion)
+    }
+
     @PostMapping
     fun createDireccion(
         @Valid @RequestBody request: DireccionRequest,
