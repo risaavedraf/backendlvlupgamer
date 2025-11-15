@@ -35,9 +35,12 @@ class SecurityConfig(
     @Bean
     fun securityFilterChain(http: HttpSecurity): SecurityFilterChain {
         http
+            .cors { } // Habilitar CORS
             .csrf { it.disable() }
             .authorizeHttpRequests { auth ->
                 auth
+                    // Permitir todas las peticiones OPTIONS (CORS preflight)
+                    .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                     .requestMatchers(
                         "/api/auth/**",
                         "/h2-console/**"
