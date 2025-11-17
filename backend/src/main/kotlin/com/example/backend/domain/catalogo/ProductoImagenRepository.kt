@@ -7,6 +7,7 @@ import java.util.Optional
 
 interface ProductoImagenRepository : JpaRepository<ProductoImagen, Long> {
     fun findByProductoIdAndIsPrincipalTrue(productoId: Long): Optional<ProductoImagen>
+    fun findFirstByProductoIdOrderByIdAsc(productoId: Long): Optional<ProductoImagen>
 
     @Modifying
     @Query("UPDATE ProductoImagen pi SET pi.isPrincipal = false WHERE pi.producto.id = :productoId AND pi.isPrincipal = true")
