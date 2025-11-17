@@ -41,18 +41,18 @@ class DataInitializer(
     private val cuponRepository: CuponRepository
 ) {
 
-    @Bean
-    fun initDatabase(): CommandLineRunner {
-        return CommandLineRunner {
-            initRoles()
-            initUsuarios()
-            initCatalogo()
-            initEventos()
-            initEstadosPedido()
-            initDirecciones()
-            initCupones()
-        }
-    }
+    // @Bean
+    // fun initDatabase(): CommandLineRunner {
+    //     return CommandLineRunner {
+    //         initRoles()
+    //         initUsuarios()
+    //         initCatalogo()
+    //         initEventos()
+    //         initEstadosPedido()
+    //         initDirecciones()
+    //         initCupones()
+    //     }
+    // }
 
     private fun initRoles() {
         if (rolRepository.count() == 0L) {

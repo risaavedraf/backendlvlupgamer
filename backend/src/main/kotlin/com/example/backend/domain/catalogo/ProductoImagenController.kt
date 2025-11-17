@@ -1,5 +1,6 @@
 package com.example.backend.domain.catalogo
 
+import org.springframework.http.HttpHeaders
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.*
@@ -29,5 +30,17 @@ class ProductoImagenController(
     ): ResponseEntity<String> {
         val base64Image = imagenService.getImageBase64(productoId, imageId)
         return ResponseEntity.ok(base64Image)
+    }
+
+    @GetMapping("/{imageId}/download")
+    fun downloadImage(
+        @PathVariable productoId: Long,
+        @PathVariable imageId: Long
+    ): ResponseEntity<ByteArray> {
+        val (data, contentType) = imagenService.getImageData(productoId, imageId)
+        return ResponseEntity.ok()
+            .header(HttpHeaders.CONTENT_TYPE, contentType)
+            .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"image\"")
+            .body(data)
     }
 }

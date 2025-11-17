@@ -7,6 +7,7 @@ import com.example.backend.dto.UpdateProductoRequest
 import com.example.backend.dto.toPageResponse
 import com.example.backend.dto.toResponse
 import com.example.backend.exception.ResourceNotFoundException
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -15,16 +16,19 @@ import org.springframework.transaction.annotation.Transactional
 class ProductoService(
     private val productoRepository: ProductoRepository,
     private val imagenRepository: ProductoImagenRepository,
-    private val categoriaRepository: CategoriaRepository
+    private val categoriaRepository: CategoriaRepository,
+    @Value("\${app.api.url:http://18.208.196.35:8080}") private val apiBaseUrl: String
 ) {
 
     // Método unificado para búsqueda y listado
+    @Transactional(readOnly = true)
     fun search(pageable: Pageable, query: String?, categoriaId: Long?): PageResponse<ProductoResponse> {
         val spec = ProductoSpecification.build(query, categoriaId)
         val page = productoRepository.findAll(spec, pageable)
         return page.toPageResponse { toResponseWithImage(it) }
     }
 
+    @Transactional(readOnly = true)
     fun findById(id: Long): ProductoResponse {
         val producto = productoRepository.findById(id)
             .orElseThrow { ResourceNotFoundException("Producto no encontrado con id $id") }
@@ -74,7 +78,7 @@ class ProductoService(
 
     private fun toResponseWithImage(producto: Producto): ProductoResponse {
         val imagenPrincipal = imagenRepository.findByProductoIdAndIsPrincipalTrue(producto.id!!)
-        val imagenUrl = imagenPrincipal.map { "/api/productos/${producto.id}/imagenes/${it.id!!}/base64" }.orElse(null)
+        val imagenUrl = imagenPrincipal.map { "$apiBaseUrl/api/productos/${producto.id}/imagenes/${it.id!!}/download" }.orElse(null)
         
         return producto.toResponse(imagenUrl)
     }

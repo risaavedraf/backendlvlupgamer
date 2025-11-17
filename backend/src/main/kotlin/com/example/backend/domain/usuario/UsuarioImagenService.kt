@@ -55,6 +55,7 @@ class UsuarioImagenService(
         return imagenRepo.save(img)
     }
 
+    @Transactional(readOnly = true)
     fun getImageBase64(usuarioId: Long, imageId: Long, userEmail: String): String {
         authorizeUser(usuarioId, userEmail)
         val img = imagenRepo.findById(imageId).orElseThrow { ResponseStatusException(HttpStatus.NOT_FOUND, "Imagen no encontrada") }
@@ -63,6 +64,7 @@ class UsuarioImagenService(
         return "data:${img.contentType};base64,$encoded"
     }
 
+    @Transactional(readOnly = true)
     fun listImages(usuarioId: Long, userEmail: String): List<UsuarioImagen> {
         authorizeUser(usuarioId, userEmail)
         return imagenRepo.findByUsuarioId(usuarioId)

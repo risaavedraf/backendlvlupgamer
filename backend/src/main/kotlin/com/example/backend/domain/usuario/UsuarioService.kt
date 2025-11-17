@@ -60,6 +60,7 @@ class UsuarioService(
         return usuarioGuardado.toResponse(profileBase64)
     }
 
+    @Transactional
     fun login(req: LoginRequest): LoginResponse {
         val authentication = authenticationManager.authenticate(
             UsernamePasswordAuthenticationToken(req.email, req.password)
@@ -79,6 +80,7 @@ class UsuarioService(
     }
 
     // Modificado para soportar paginación y filtrado por query
+    @Transactional(readOnly = true)
     fun findAllUsuariosWithRoles(pageable: Pageable, query: String? = null): PageResponse<UsuarioResponse> {
         val spec = UsuarioSpecification.withSearchQuery(query)
         val page = usuarioRepository.findAll(spec, pageable)

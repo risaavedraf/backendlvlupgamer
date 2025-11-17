@@ -8,6 +8,7 @@ import com.example.backend.dto.UsuarioResponse
 import com.example.backend.dto.toResponse
 import com.example.backend.exception.ResourceNotFoundException
 import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDate
 
 @Service
@@ -17,6 +18,7 @@ class ProfileService(
     private val direccionRepository: DireccionRepository, // Inyectar
     private val reviewRepository: ReviewRepository // Inyectar
 ) {
+    @Transactional(readOnly = true)
     fun getProfile(email: String): FullProfileResponse { // <-- CAMBIO AQUÍ
         val usuario = usuarioRepository.findByEmail(email)
             .orElseThrow { ResourceNotFoundException("Usuario no encontrado con email $email") }
@@ -41,6 +43,7 @@ class ProfileService(
         )
     }
 
+    @Transactional
     fun updateProfile(email: String, request: UpdateProfileRequest): UsuarioResponse {
         val usuario = usuarioRepository.findByEmail(email)
             .orElseThrow { ResourceNotFoundException("Usuario no encontrado con email $email") }

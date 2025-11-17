@@ -38,6 +38,7 @@ class EventoImagenService(
         return imagenRepository.save(imagen)
     }
 
+    @Transactional(readOnly = true)
     fun getImageBase64(eventoId: Long, imageId: Long): String {
         val img = imagenRepository.findById(imageId)
             .orElseThrow { ResourceNotFoundException("Imagen no encontrada con id $imageId") }
