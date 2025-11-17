@@ -17,7 +17,8 @@ class CarritoService(
     private val carritoRepository: CarritoRepository,
     private val productoRepository: ProductoRepository,
     private val usuarioRepository: UsuarioRepository,
-    private val cuponRepository: CuponRepository // Inyectar
+    private val cuponRepository: CuponRepository, // Inyectar
+    private val imagenRepository: com.example.backend.domain.catalogo.ProductoImagenRepository
 ) {
 
     fun getCarritoResponse(): CarritoResponse {
@@ -118,10 +119,20 @@ class CarritoService(
 
     private fun mapToCarritoResponse(carrito: Carrito): CarritoResponse {
         val itemResponses = carrito.items.map { item ->
+            val productoId = item.producto.id ?: throw IllegalStateException("ID del producto no puede ser nulo")
+            
+            // Obtener la imagen principal del producto, si no existe, obtener la primera imagen disponible
+            val imagen = imagenRepository.findByProductoIdAndIsPrincipalTrue(productoId)
+                .or { imagenRepository.findFirstByProductoIdOrderByIdAsc(productoId) }
+            
+            val imagenUrl = imagen.map { 
+                "/api/productos/$productoId/imagenes/${it.id}/base64" 
+            }.orElse(null)
+            
             CarritoItemResponse(
-                productoId = item.producto.id!!,
+                productoId = productoId,
                 nombreProducto = item.producto.nombre,
-                imagenUrl = "/api/productos/${item.producto.id}/imagenes/1/base64",
+                imagenUrl = imagenUrl,
                 precioUnitario = item.producto.precio,
                 cantidad = item.cantidad,
                 subtotal = item.getSubtotal()

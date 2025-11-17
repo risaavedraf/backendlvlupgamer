@@ -50,4 +50,16 @@ class ProductoImagenService(
         val encoded = Base64.getEncoder().encodeToString(img.data)
         return "data:${img.contentType};base64,$encoded"
     }
+
+    @Transactional(readOnly = true)
+    fun getImageData(productoId: Long, imageId: Long): Pair<ByteArray, String> {
+        val img = imagenRepository.findById(imageId)
+            .orElseThrow { ResourceNotFoundException("Imagen no encontrada con id $imageId") }
+
+        if (img.producto.id != productoId) {
+            throw ResourceNotFoundException("La imagen no pertenece al producto especificado.")
+        }
+
+        return Pair(img.data, img.contentType)
+    }
 }
