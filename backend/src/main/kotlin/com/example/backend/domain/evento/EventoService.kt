@@ -18,11 +18,13 @@ class EventoService(
 ) {
 
     // Modificado para soportar paginación
+    @Transactional(readOnly = true)
     fun findAll(pageable: Pageable): PageResponse<EventoResponse> {
         val page = eventoRepository.findAll(pageable)
         return page.toPageResponse { toResponseWithImage(it) }
     }
 
+    @Transactional(readOnly = true)
     fun findById(id: Long): EventoResponse {
         val evento = eventoRepository.findById(id)
             .orElseThrow { ResourceNotFoundException("Evento no encontrado con id $id") }
@@ -30,6 +32,7 @@ class EventoService(
     }
 
     // Añadido para soportar paginación y filtrado por query
+    @Transactional(readOnly = true)
     fun searchEventos(query: String, pageable: Pageable): PageResponse<EventoResponse> {
         val spec = EventoSpecification.withSearchQuery(query)
         val page = eventoRepository.findAll(spec, pageable)

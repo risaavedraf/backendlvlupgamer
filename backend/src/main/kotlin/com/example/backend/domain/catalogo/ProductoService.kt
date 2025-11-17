@@ -19,12 +19,14 @@ class ProductoService(
 ) {
 
     // Método unificado para búsqueda y listado
+    @Transactional(readOnly = true)
     fun search(pageable: Pageable, query: String?, categoriaId: Long?): PageResponse<ProductoResponse> {
         val spec = ProductoSpecification.build(query, categoriaId)
         val page = productoRepository.findAll(spec, pageable)
         return page.toPageResponse { toResponseWithImage(it) }
     }
 
+    @Transactional(readOnly = true)
     fun findById(id: Long): ProductoResponse {
         val producto = productoRepository.findById(id)
             .orElseThrow { ResourceNotFoundException("Producto no encontrado con id $id") }
@@ -73,9 +75,9 @@ class ProductoService(
     }
 
     private fun toResponseWithImage(producto: Producto): ProductoResponse {
-        val imagenPrincipal = imagenRepository.findByProductoIdAndIsPrincipalTrue(producto.id!!)
-        val imagenUrl = imagenPrincipal.map { "/api/productos/${producto.id}/imagenes/${it.id!!}/base64" }.orElse(null)
-        
+        val imagenUrl = (producto.imagenes.find { it.isPrincipal } ?: producto.imagenes.firstOrNull())
+            ?.let { "/api/productos/${producto.id}/imagenes/${it.id}/base64" }
+
         return producto.toResponse(imagenUrl)
     }
 }
