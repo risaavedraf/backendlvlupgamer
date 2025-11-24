@@ -3,6 +3,8 @@ package com.example.backend.domain.pedido
 import com.example.backend.dto.CheckoutRequest
 import com.example.backend.dto.PedidoResponse
 import com.example.backend.dto.UpdatePedidoEstadoRequest // Importar el nuevo DTO
+import io.swagger.v3.oas.annotations.Operation
+import io.swagger.v3.oas.annotations.tags.Tag
 import jakarta.validation.Valid
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -12,9 +14,11 @@ import java.security.Principal
 
 @RestController
 @RequestMapping("/api/pedidos")
+@Tag(name = "Pedidos", description = "Endpoints para gestión de pedidos del usuario")
 class PedidoController(private val pedidoService: PedidoService) {
 
     @PostMapping("/checkout")
+    @Operation(summary = "Realizar pedido (Checkout)", description = "Crea un nuevo pedido a partir del carrito de compras.")
     fun checkout(
         @Valid @RequestBody request: CheckoutRequest,
         principal: Principal
@@ -24,6 +28,7 @@ class PedidoController(private val pedidoService: PedidoService) {
     }
 
     @GetMapping("/me")
+    @Operation(summary = "Mis pedidos", description = "Obtiene el historial de pedidos del usuario autenticado.")
     fun getMyPedidos(principal: Principal): ResponseEntity<List<PedidoResponse>> {
         val pedidos = pedidoService.getPedidosByUsuario(principal.name)
         return ResponseEntity.ok(pedidos)

@@ -43,7 +43,10 @@ class SecurityConfig(
                     .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                     .requestMatchers(
                         "/api/auth/**",
-                        "/h2-console/**"
+                        "/h2-console/**",
+                        "/v3/api-docs/**",
+                        "/swagger-ui/**",
+                        "/swagger-ui.html"
                     ).permitAll()
                     .requestMatchers(HttpMethod.GET, "/api/productos/**", "/api/categorias/**").permitAll()
                     .requestMatchers(HttpMethod.GET, "/api/eventos/**", "/api/eventos/{eventoId}/imagenes/**").permitAll()
