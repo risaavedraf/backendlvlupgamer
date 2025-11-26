@@ -45,4 +45,14 @@ class AdminUsuarioController(private val usuarioService: UsuarioService) {
         val usuarioActualizado = usuarioService.asignarRolAUsuario(userId, request.rolId)
         return ResponseEntity.ok(usuarioActualizado)
     }
+
+    @DeleteMapping("/{userId}/roles/{rolId}")
+    @Operation(summary = "Remover rol de usuario", description = "Elimina un rol específico asignado a un usuario.")
+    fun removerRolDeUsuario(
+        @Parameter(description = "ID del usuario", required = true) @PathVariable userId: Long,
+        @Parameter(description = "ID del rol a remover", required = true) @PathVariable rolId: Long
+    ): ResponseEntity<UsuarioResponse> {
+        val usuarioActualizado = usuarioService.removerRolDeUsuario(userId, rolId)
+        return ResponseEntity.ok(usuarioActualizado)
+    }
 }

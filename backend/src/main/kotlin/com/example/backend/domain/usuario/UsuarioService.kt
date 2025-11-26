@@ -107,4 +107,25 @@ class UsuarioService(
 
         return usuarioActualizado.toResponse(profileBase64)
     }
+
+    @Transactional
+    fun removerRolDeUsuario(userId: Long, rolId: Long): UsuarioResponse {
+        val usuario = usuarioRepository.findById(userId)
+            .orElseThrow { ResourceNotFoundException("Usuario no encontrado con ID $userId") }
+
+        val rol = rolRepository.findById(rolId)
+            .orElseThrow { ResourceNotFoundException("Rol no encontrado con ID $rolId") }
+
+        if (!usuario.roles.contains(rol)) {
+            throw ResourceNotFoundException("El usuario no tiene asignado el rol con ID $rolId")
+        }
+
+        usuario.roles.remove(rol)
+        val usuarioActualizado = usuarioRepository.save(usuario)
+
+        val profile = imagenRepo.findByUsuarioIdAndProfileTrue(usuarioActualizado.id!!)
+        val profileBase64 = profile?.let { "data:${it.contentType};base64:${java.util.Base64.getEncoder().encodeToString(it.data)}" }
+
+        return usuarioActualizado.toResponse(profileBase64)
+    }
 }
